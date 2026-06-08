@@ -14,8 +14,12 @@
 
 import os
 
+from pathlib import Path
+
 import google.auth
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from google.adk.cli.fast_api import get_fast_api_app
 from google.cloud import logging as google_cloud_logging
 
@@ -50,6 +54,26 @@ app: FastAPI = get_fast_api_app(
 )
 app.title = "MoDeX — Memory of Codex"
 app.description = "Shared reasoning memory for AI coding teams. Fivetran MCP + Gemini ADK."
+
+from app.dashboard_api import router as dashboard_router  # noqa: E402
+
+app.include_router(dashboard_router)
+
+_FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if _FRONTEND_DIR.exists():
+
+    @app.get("/dashboard/{full_path:path}")
+    async def serve_dashboard(full_path: str):
+        file_path = _FRONTEND_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(_FRONTEND_DIR / "index.html")
+
+    app.mount(
+        "/dashboard/assets",
+        StaticFiles(directory=_FRONTEND_DIR / "assets"),
+        name="dashboard-assets",
+    )
 
 
 @app.post("/feedback")

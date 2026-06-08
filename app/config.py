@@ -17,7 +17,7 @@ load_dotenv(_HACKATHON_ROOT / ".env")
 GOOGLE_CLOUD_PROJECT = os.getenv(
     "GOOGLE_CLOUD_PROJECT", "gen-lang-client-0795401430"
 )
-GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "asia-south1")
 
 FIVETRAN_API_KEY = os.getenv("FIVETRAN_API_KEY", "")
 FIVETRAN_API_SECRET = os.getenv("FIVETRAN_API_SECRET", "")

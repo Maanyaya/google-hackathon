@@ -16,6 +16,8 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+!frontend/dist/
+!frontend/dist/**
 downloads/
 eggs/
 .eggs/
@@ -188,6 +190,9 @@ Thumbs.db
 
 # ADK
 .adk/
+
+# Service account keys (never commit)
+gen-lang-client-*.json
 
 # Agent CLI specific
 .persist_vector_store
