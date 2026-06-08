@@ -1,0 +1,46 @@
+{
+  "eval_cases": [
+    {
+      "eval_case_id": "memory_freshness",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "Is our team's shared memory up to date? Check all Fivetran data source connections and report which ones are synced, which are stale, and when data was last pulled."}]
+      }
+    },
+    {
+      "eval_case_id": "team_decisions",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "What does our shared memory contain? Query BigQuery for the team's data and summarize what's available. How many records do we have and when was it last synced?"}]
+      }
+    },
+    {
+      "eval_case_id": "decision_provenance",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "Trace the provenance of our team data — show the latest sync events and lineage from source to BigQuery using Platform Connector metadata. I want to know the full data journey."}]
+      }
+    },
+    {
+      "eval_case_id": "knowledge_structuring",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "What dbt transformations exist to structure our raw data into analytics-ready tables? What output tables do they produce? Do not run anything — just report status."}]
+      }
+    },
+    {
+      "eval_case_id": "session_handoff",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "Show the codebase log timeline for github.com/demo/api-service. What file edits, decisions, and errors happened in the last Cursor session? What should a new Antigravity agent know?"}]
+      }
+    },
+    {
+      "eval_case_id": "full_mission",
+      "prompt": {
+        "role": "user",
+        "parts": [{"text": "Give me a complete team status: are our data source pipelines healthy, what data do we have in shared memory, how fresh is it, and what structured analytics tables are available? Summarize everything."}]
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "modex-memory": {
+      "command": "D:\\Google cloud rapid agent hackathon\\agentic-data-platform\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "modex_mcp.server"],
+      "cwd": "D:\\Google cloud rapid agent hackathon\\agentic-data-platform",
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "gen-lang-client-0795401430",
+        "GOOGLE_APPLICATION_CREDENTIALS": "D:\\Google cloud rapid agent hackathon\\gen-lang-client-0795401430-7e740cbd01ac.json",
+        "PYTHONPATH": "D:\\Google cloud rapid agent hackathon\\agentic-data-platform"
+      }
+    }
+  }
+}

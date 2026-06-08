@@ -1,0 +1,13 @@
+﻿{
+    "userId":  "demo",
+    "newMessage":  {
+                       "role":  "user",
+                       "parts":  [
+                                     {
+                                         "text":  "Use ingestion agent: is vertebra_tycoon connection healthy?"
+                                     }
+                                 ]
+                   },
+    "appName":  "app",
+    "sessionId":  "66bcc951-0158-4cfa-812f-3bd2e966dc19"
+}

@@ -1,0 +1,47 @@
+{
+  "name": "MoDeX — Memory of Codex",
+  "description": "Shared reasoning memory for engineering teams using AI coding agents. Fivetran syncs engineering data (GitHub, Jira, Slack, Sheets) into BigQuery. Seven specialized agents turn raw data into queryable team memory with full provenance and governance.",
+  "url": "https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/asia-south1/agent-engines/4567336117409415168/playground?project=gen-lang-client-0795401430",
+  "version": "3.0.0",
+  "capabilities": {},
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "skills": [
+    {
+      "id": "memory-query",
+      "name": "Shared Memory Query",
+      "description": "Search team decisions, code history, architecture choices, and rejected paths across all synced engineering data sources.",
+      "tags": ["memory", "bigquery", "rag", "decisions"]
+    },
+    {
+      "id": "data-source-sync",
+      "name": "Data Source Sync",
+      "description": "Operate Fivetran pipelines to sync engineering data (GitHub, Sheets, Jira, Slack) into the shared memory warehouse.",
+      "tags": ["fivetran", "mcp", "ingestion", "sync"]
+    },
+    {
+      "id": "decision-provenance",
+      "name": "Decision Provenance",
+      "description": "Trace the origin and freshness of every piece of shared memory — which source, which sync, which developer, when.",
+      "tags": ["lineage", "provenance", "metadata", "trust"]
+    },
+    {
+      "id": "knowledge-structuring",
+      "name": "Knowledge Structuring",
+      "description": "Transform raw engineering data into structured decision records and team analytics via Fivetran dbt Core transformations.",
+      "tags": ["dbt", "transformation", "analytics"]
+    },
+    {
+      "id": "team-broadcast",
+      "name": "Team Broadcast",
+      "description": "Push decision summaries, progress reports, and alerts to Cloud Storage, Google Sheets, or Slack/Teams webhooks.",
+      "tags": ["action", "gcs", "sheets", "webhook", "reports"]
+    },
+    {
+      "id": "access-governance",
+      "name": "Access Governance",
+      "description": "Human-in-the-loop safety gate for all write operations. Ensures sensitive engineering context is shared with proper governance.",
+      "tags": ["governance", "safety", "guardian", "audit"]
+    }
+  ]
+}
