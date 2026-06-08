@@ -72,10 +72,34 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
+            name="load_context",
+            description=(
+                "PRIMARY: Hydrate a NEW coding-agent session with the team's shared "
+                "decision memory. Returns a curated, provenance-stamped CONTEXT PACK that "
+                "fuses coding-agent session decisions with GitHub PRs + reviews synced via "
+                "Fivetran, cross-referenced and dated: adopted decisions, REJECTED approaches "
+                "(don't redo), open questions, and known gotchas. Call at session start and "
+                "build on `hydration_prompt` instead of starting cold."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "project_repo": {"type": "string"},
+                    "limit": {"type": "integer", "default": 40},
+                    "include_rag": {
+                        "type": "boolean",
+                        "default": False,
+                        "description": "Also attach a conceptual note from Vertex AI RAG.",
+                    },
+                },
+                "required": ["project_repo"],
+            },
+        ),
+        Tool(
             name="load_context_from_logs",
             description=(
-                "PRIMARY: Replay recent codebase logs to hydrate a NEW agent session. "
-                "Call at session start — returns chronological events + hydration_prompt."
+                "Replay recent raw codebase log events for a repo (lower-level than "
+                "load_context). Returns chronological events + a basic hydration_prompt."
             ),
             inputSchema={
                 "type": "object",
@@ -165,7 +189,25 @@ async def list_tools() -> list[Tool]:
 @server.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     args = arguments or {}
-    if name == "append_codebase_log":
+    if name == "load_context":
+        try:
+            from app.memory_graph import build_context_pack
+
+            result = build_context_pack(
+                project_repo=args["project_repo"],
+                limit=int(args.get("limit", 40)),
+                include_rag=bool(args.get("include_rag", False)),
+            )
+        except Exception as exc:  # noqa: BLE001
+            result = {
+                "status": "error",
+                "message": f"context pack failed, falling back to raw logs: {exc}",
+                "fallback": load_context_from_logs(
+                    project_repo=args["project_repo"],
+                    limit=int(args.get("limit", 40)),
+                ),
+            }
+    elif name == "append_codebase_log":
         result = append_codebase_log(
             developer_id=args["developer_id"],
             agent_tool=args["agent_tool"],
@@ -229,5 +271,9 @@ async def main() -> None:
         await server.run(read_stream, write_stream, server.create_initialization_options())
 
 
-if __name__ == "__main__":
+def cli() -> None:
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    cli()

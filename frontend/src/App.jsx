@@ -1,57 +1,92 @@
-import { useCallback } from "react";
-import "./index.css";
-import { useDashboardData } from "./hooks";
-import { Shell, TopBar } from "./components/layout/Shell";
-import { HeroMetrics, ArchitectureFlow } from "./components/sections/HeroMetrics";
-import { AgentConstellation } from "./components/sections/AgentConstellation";
-import { PipelineHealth } from "./components/sections/PipelineHealth";
-import { MemoryFeed } from "./components/sections/MemoryFeed";
-import { AnalyticsCharts } from "./components/sections/AnalyticsCharts";
-import { MissionDeck } from "./components/sections/MissionDeck";
+import { lazy, Suspense, useCallback } from "react";
+import { useDashboardBundle } from "./hooks";
+import { Nav } from "./components/Nav";
+import { Hero } from "./components/sections/Hero";
+import { Problem } from "./components/sections/Problem";
+import { Architecture } from "./components/sections/Architecture";
+
+const MemoryGraph = lazy(() =>
+  import("./components/sections/MemoryGraph").then((m) => ({ default: m.MemoryGraph })),
+);
+const ContextPack = lazy(() =>
+  import("./components/sections/ContextPack").then((m) => ({ default: m.ContextPack })),
+);
+const Decisions = lazy(() =>
+  import("./components/sections/Decisions").then((m) => ({ default: m.Decisions })),
+);
+const Impact = lazy(() =>
+  import("./components/sections/Impact").then((m) => ({ default: m.Impact })),
+);
+const Agents = lazy(() =>
+  import("./components/sections/Agents").then((m) => ({ default: m.Agents })),
+);
+const Pipelines = lazy(() =>
+  import("./components/sections/Pipelines").then((m) => ({ default: m.Pipelines })),
+);
+const Mission = lazy(() =>
+  import("./components/sections/Mission").then((m) => ({ default: m.Mission })),
+);
+const Footer = lazy(() =>
+  import("./components/sections/Footer").then((m) => ({ default: m.Footer })),
+);
+
+function SectionFallback({ min = 320 }) {
+  return <div className="section-fallback" style={{ minHeight: min }} aria-hidden />;
+}
 
 export default function App() {
-  const { data: overview } = useDashboardData("/api/dashboard/overview");
-  const { data: topology, loading: topoLoading } = useDashboardData("/api/dashboard/topology");
-  const { data: pipelines, loading: pipeLoading } = useDashboardData("/api/dashboard/pipelines", 60000);
-  const { data: freshness, loading: freshLoading } = useDashboardData("/api/dashboard/freshness", 60000);
-  const { data: memory, loading: memLoading } = useDashboardData("/api/dashboard/memory", 30000);
-  const { data: eventsChart, loading: chartLoading } = useDashboardData("/api/dashboard/charts/activities");
-  const { data: toolsChart } = useDashboardData("/api/dashboard/charts/class-levels");
-  const { data: decisionsChart } = useDashboardData("/api/dashboard/charts/states");
-  const { data: timeline } = useDashboardData("/api/dashboard/timeline", 60000);
+  const {
+    overview,
+    topology,
+    pack,
+    decisions,
+    impact,
+    pipelines,
+    freshness,
+    packLoading,
+    topoLoading,
+    decisionsLoading,
+  } = useDashboardBundle();
 
-  const scrollTo = useCallback((id) => {
+  const onNav = useCallback((id) => {
+    if (id === "top") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  const metricsLoading = freshLoading && !freshness;
-
   return (
-    <Shell>
-      <TopBar overview={overview} onNav={scrollTo} />
+    <>
+      <Nav onNav={onNav} githubSource={overview?.github_source} />
+      <Hero overview={overview} decisions={decisions} impact={impact} onNav={onNav} />
+      <Problem />
+      <Architecture />
 
-      <main className="ui-main">
-        <HeroMetrics overview={overview} freshness={freshness} memory={memory} loading={metricsLoading} />
-        <ArchitectureFlow overview={overview} />
-        <AgentConstellation agents={topology?.agents} loading={topoLoading} />
-        <PipelineHealth
-          pipelines={pipelines}
-          highlightId={overview?.fivetran_modex_connection}
-          timeline={timeline}
-          loading={pipeLoading}
-        />
-        <MemoryFeed data={memory} loading={memLoading} />
-        <AnalyticsCharts events={eventsChart} tools={toolsChart} decisions={decisionsChart} loading={chartLoading} />
-        <MissionDeck />
-      </main>
-
-      <footer className="ui-footer">
-        <span>MoDeX · Memory of Codex</span>
-        <span className="ui-footer-dot" />
-        <span>Fivetran Track</span>
-        <span className="ui-footer-dot" />
-        <span className="font-mono text-[0.65rem] opacity-60">{overview?.cloud_run_url ? "live" : "local"}</span>
-      </footer>
-    </Shell>
+      <Suspense fallback={<SectionFallback min={480} />}>
+        <MemoryGraph decisions={decisions} />
+      </Suspense>
+      <Suspense fallback={<SectionFallback min={520} />}>
+        <ContextPack pack={pack} loading={packLoading} />
+      </Suspense>
+      <Suspense fallback={<SectionFallback min={400} />}>
+        <Decisions decisions={decisions} loading={decisionsLoading} />
+      </Suspense>
+      <Suspense fallback={<SectionFallback min={420} />}>
+        <Impact impact={impact} />
+      </Suspense>
+      <Suspense fallback={<SectionFallback min={360} />}>
+        <Agents topology={topology} loading={topoLoading} />
+      </Suspense>
+      <Suspense fallback={<SectionFallback min={320} />}>
+        <Pipelines pipelines={pipelines} freshness={freshness} />
+      </Suspense>
+      <Suspense fallback={<SectionFallback min={380} />}>
+        <Mission />
+      </Suspense>
+      <Suspense fallback={null}>
+        <Footer overview={overview} onNav={onNav} />
+      </Suspense>
+    </>
   );
 }

@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from app import config
 from app.fivetran_mcp import call_fivetran_tool
+from app.memory_graph import build_context_pack, get_decision_graph
 from app.tools import get_codebase_log_timeline
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -29,23 +30,40 @@ AGENT_TOPOLOGY = [
     {
         "id": "orchestrator_agent",
         "label": "Mission Control",
-        "description": "MoDeX hub — plans missions, delegates to specialist agents",
+        "description": "Plans missions, delegates to specialists, and governs every write (Guardian policy)",
         "icon": "brain",
         "color": "#6366f1",
-        "tools": [],
+        "tools": ["guardian_approve_write", "guardian_deny_write"],
+        "policy": "Human-in-the-loop: writes blocked until the user confirms and Mission Control approves",
         "delegates_to": [
-            "ingestion_agent",
-            "knowledge_agent",
-            "lineage_agent",
-            "transformation_agent",
+            "memory_agent",
+            "pipeline_agent",
             "action_agent",
-            "guardian_agent",
         ],
     },
     {
-        "id": "ingestion_agent",
-        "label": "Data Source Connector",
-        "description": "Syncs engineering data (GitHub, Sheets, Jira) via Fivetran MCP",
+        "id": "memory_agent",
+        "label": "Shared Memory Engine",
+        "description": "Retrieval brain — builds the cross-referenced context pack (sessions + GitHub via Fivetran), each fact dated and cited",
+        "icon": "search",
+        "color": "#10b981",
+        "tools": [
+            "get_team_context",
+            "get_decision_memory",
+            "get_agent_memory_for_project",
+            "get_codebase_log_timeline",
+            "get_modex_fivetran_logs",
+            "get_data_catalog",
+            "get_table_schema",
+            "query_bigquery",
+            "search_knowledge_base",
+        ],
+        "mcp": "BigQuery + Vertex AI RAG + GitHub (Fivetran) + Face 1 memory",
+    },
+    {
+        "id": "pipeline_agent",
+        "label": "Data Pipeline Operator",
+        "description": "Operates Fivetran end to end — connections, syncs, lineage & freshness, and dbt transformations",
         "icon": "database",
         "color": "#06b6d4",
         "tools": [
@@ -55,60 +73,19 @@ AGENT_TOPOLOGY = [
             "fivetran_list_connections",
             "fivetran_get_connection_details",
             "fivetran_sync_connection",
-        ],
-        "mcp": "Fivetran MCP",
-    },
-    {
-        "id": "knowledge_agent",
-        "label": "Shared Memory Engine",
-        "description": "Queries team decisions & reasoning via BigQuery + RAG",
-        "icon": "search",
-        "color": "#10b981",
-        "tools": [
-            "get_data_catalog",
-            "get_agent_memory_catalog",
-            "get_agent_memory_for_project",
-            "get_codebase_log_timeline",
-            "get_modex_fivetran_logs",
-            "query_bigquery",
-            "search_knowledge_base",
-        ],
-        "mcp": "BigQuery + Vertex AI RAG + Face 1 agent_memory",
-    },
-    {
-        "id": "lineage_agent",
-        "label": "Decision Provenance",
-        "description": "Traces data freshness, lineage, and change history",
-        "icon": "git-branch",
-        "color": "#f59e0b",
-        "tools": [
             "get_pipeline_metadata_catalog",
-            "query_bigquery",
-            "fivetran_list_connections",
-        ],
-        "mcp": "Platform Connector metadata",
-    },
-    {
-        "id": "transformation_agent",
-        "label": "Knowledge Structurer",
-        "description": "Transforms raw data into structured decision records via dbt",
-        "icon": "layers",
-        "color": "#8b5cf6",
-        "tools": [
             "get_transformation_catalog",
-            "fivetran_list_transformation_projects",
-            "fivetran_get_transformation_project_details",
             "fivetran_list_transformations",
             "fivetran_get_transformation_details",
             "fivetran_run_transformation",
             "query_bigquery",
         ],
-        "mcp": "Fivetran Transformations",
+        "mcp": "Fivetran MCP + Platform Connector metadata",
     },
     {
         "id": "action_agent",
         "label": "Team Broadcaster",
-        "description": "Pushes reports & alerts to GCS, Sheets, or webhooks",
+        "description": "Turns shared memory into real outputs — GCS exports, Sheets write-back, webhooks (Guardian-gated)",
         "icon": "send",
         "color": "#ec4899",
         "tools": [
@@ -119,14 +96,6 @@ AGENT_TOPOLOGY = [
             "send_webhook_notification",
         ],
         "mcp": "GCS + Sheets API + Webhooks",
-    },
-    {
-        "id": "guardian_agent",
-        "label": "Access Governor",
-        "description": "Human-in-the-loop governance for all write operations",
-        "icon": "shield",
-        "color": "#ef4444",
-        "tools": ["guardian_approve_write", "guardian_deny_write"],
     },
 ]
 
@@ -156,18 +125,20 @@ async def get_overview() -> dict[str, Any]:
         "tagline": "Shared reasoning memory for AI coding teams",
         "project": config.GOOGLE_CLOUD_PROJECT,
         "region": "asia-south1",
-        "agent_count": 7,
+        "agent_count": len(AGENT_TOPOLOGY),
         "agents": [a["label"] for a in AGENT_TOPOLOGY],
         "fivetran_group": config.FIVETRAN_BQ_GROUP_ID,
         "datasets": [
             config.MODEX_MEMORY_DATASET,
             config.MODEX_FIVETRAN_BQ_DATASET,
+            config.GITHUB_DATASET,
             config.BQ_METADATA_DATASET,
-            "google_sheets",
             "analytics",
         ],
-        "face1_mcp": "modex_mcp (append_codebase_log, load_context_from_logs)",
+        "face1_mcp": "modex_mcp (append_codebase_log, load_context)",
         "agent_memory_table": config.MODEX_CODEBASE_LOGS_FULL_TABLE,
+        "github_dataset": config.GITHUB_PREFIX,
+        "github_source": "live" if config.GITHUB_DATASET == "github" else "demo",
         "fivetran_modex_table": config.MODEX_FIVETRAN_FULL_TABLE,
         "fivetran_modex_connection": config.FIVETRAN_MODEX_LOGS_CONNECTION_ID,
         "codebase_logs_primary": True,
@@ -292,6 +263,58 @@ async def get_memory_timeline() -> dict[str, Any]:
         "status": "success",
         "table": config.MODEX_CODEBASE_LOGS_FULL_TABLE,
         "memories": memories,
+    }
+
+
+@router.get("/decisions")
+async def get_decisions(repo: str = "") -> dict[str, Any]:
+    """Cross-referenced decision memory: session decisions fused with GitHub PRs/reviews."""
+    return get_decision_graph(project_repo=repo or None)
+
+
+@router.get("/context-pack")
+async def get_context_pack(repo: str = "") -> dict[str, Any]:
+    """The full MoDeX context pack a coding agent receives via MCP load_context."""
+    return build_context_pack(project_repo=repo or None, include_rag=False)
+
+
+@router.get("/impact")
+async def get_impact(repo: str = "") -> dict[str, Any]:
+    """Cold-start vs warm-start: what a new agent session gets instantly from MoDeX."""
+    pack = build_context_pack(project_repo=repo or None, include_rag=False)
+    if pack.get("status") != "success":
+        return pack
+    c = pack["counts"]
+    # Rough rediscovery estimate: minutes a fresh agent would spend re-deriving each item.
+    per_decision_min = 8
+    per_rejected_min = 25  # dead-ends are the most expensive to rediscover
+    per_gotcha_min = 15
+    minutes_saved = (
+        c["decisions"] * per_decision_min
+        + c["rejected"] * per_rejected_min
+        + c["gotchas"] * per_gotcha_min
+    )
+    return {
+        "status": "success",
+        "project_repo": pack["project_repo"],
+        "freshness": pack["freshness"],
+        "cold_start": {
+            "context_items": 0,
+            "decisions_known": 0,
+            "rejected_known": 0,
+            "note": "A fresh agent session knows nothing — it rediscovers from scratch.",
+        },
+        "warm_start": {
+            "context_items": c["decisions"] + c["rejected"] + c["open_questions"] + c["gotchas"],
+            "decisions_known": c["decisions"],
+            "corroborated": c["corroborated"],
+            "rejected_known": c["rejected"],
+            "gotchas_known": c["gotchas"],
+            "hydration_seconds": 2,
+            "note": "MoDeX hydrates the agent via load_context in ~2s, each item cited.",
+        },
+        "estimated_minutes_saved_per_session": minutes_saved,
+        "estimated_hours_saved_per_week_15_devs": round(minutes_saved * 15 * 5 / 60, 1),
     }
 
 

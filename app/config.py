@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -88,3 +89,50 @@ MODEX_FIVETRAN_BQ_TABLE = os.getenv("MODEX_FIVETRAN_BQ_TABLE", "modex_logs")
 MODEX_FIVETRAN_FULL_TABLE = (
     f"{GOOGLE_CLOUD_PROJECT}.{MODEX_FIVETRAN_BQ_DATASET}.{MODEX_FIVETRAN_BQ_TABLE}"
 )
+
+# GitHub source synced via Fivetran (PRs, reviews, commits = where the "why" lives).
+# Defaults to the seeded demo dataset; flip to "github" once the live connector syncs.
+GITHUB_DATASET = os.getenv("GITHUB_DATASET", "github_demo")
+GITHUB_PREFIX = f"{GOOGLE_CLOUD_PROJECT}.{GITHUB_DATASET}"
+# Repo whose decisions we cross-reference (codebase_logs project_repo <-> github repository).
+MODEX_DEMO_REPO = os.getenv("MODEX_DEMO_REPO", "github.com/demo/api-service")
+GITHUB_REPO_FULL_NAME = os.getenv("GITHUB_REPO_FULL_NAME", "demo/api-service")
+
+# Unified cross-referenced decision memory (session events + GitHub PRs/reviews).
+MODEX_DECISIONS_DATASET = os.getenv("MODEX_DECISIONS_DATASET", "modex")
+MODEX_DECISIONS_VIEW = (
+    f"{GOOGLE_CLOUD_PROJECT}.{MODEX_DECISIONS_DATASET}.decisions"
+)
+
+
+def _parse_api_keys(raw: str) -> dict[str, str]:
+    """Parse per-user MoDeX API keys into a {api_key: developer_id} map.
+
+    Two accepted formats (server-side secret, never shipped to clients):
+      - Pairs:  "gagan:sk-abc123,maya:sk-def456"
+      - JSON:   '{"gagan": "sk-abc123", "maya": "sk-def456"}'
+    The map is keyed by the secret so request auth is a single lookup, and the
+    resolved developer_id is what gets stamped on every logged memory event.
+    """
+    raw = (raw or "").strip()
+    if not raw:
+        return {}
+    if raw.startswith("{"):
+        try:
+            return {str(secret): str(dev) for dev, secret in json.loads(raw).items()}
+        except (ValueError, TypeError):
+            return {}
+    out: dict[str, str] = {}
+    for pair in raw.split(","):
+        pair = pair.strip()
+        if ":" in pair:
+            dev, secret = pair.split(":", 1)
+            secret = secret.strip()
+            if secret:
+                out[secret] = dev.strip()
+    return out
+
+
+# Face 1 served-over-the-web auth — per-user API keys for the hosted MoDeX API.
+# Cloud Run holds the GCP credentials; teammates only ever hold one of these keys.
+MODEX_API_KEYS = _parse_api_keys(os.getenv("MODEX_API_KEYS", ""))

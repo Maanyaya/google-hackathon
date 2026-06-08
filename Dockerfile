@@ -25,6 +25,7 @@ WORKDIR /code
 COPY ./pyproject.toml ./README.md ./uv.lock* ./
 
 COPY ./app ./app
+COPY ./modex_mcp ./modex_mcp
 COPY ./knowledge ./knowledge
 
 # Frontend (pre-built)

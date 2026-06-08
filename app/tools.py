@@ -394,6 +394,42 @@ def query_bigquery(sql: str) -> dict[str, Any]:
         return {"status": "error", "message": str(exc)}
 
 
+def get_team_context(project_repo: str = "", include_rag: bool = False) -> dict[str, Any]:
+    """Build the MoDeX context pack — the team's shared decision memory for a repo.
+
+    THIS IS THE PRIMARY MEMORY TOOL. It fuses coding-agent session decisions
+    (agent_memory.codebase_logs) with GitHub PRs + reviews synced via Fivetran,
+    cross-references them, and returns adopted decisions, REJECTED approaches,
+    open questions, and gotchas — each dated and cited with provenance
+    (session timestamps and Fivetran `_fivetran_synced`). Use this to answer
+    "what has the team decided / why / what was rejected" and for session handoff.
+
+    Args:
+        project_repo: Repo identifier (e.g. github.com/demo/api-service). Empty = demo repo.
+        include_rag: Also attach a conceptual note from Vertex AI RAG.
+    """
+    from app.memory_graph import build_context_pack
+
+    return build_context_pack(
+        project_repo=project_repo or None,
+        include_rag=include_rag,
+    )
+
+
+def get_decision_memory(project_repo: str = "") -> dict[str, Any]:
+    """Return the cross-referenced decision graph (session events + GitHub via Fivetran).
+
+    Lighter than get_team_context — just the decisions/rejected/open lists plus
+    freshness counts, ideal for provenance and "show me the decisions" questions.
+
+    Args:
+        project_repo: Repo identifier (empty = demo repo).
+    """
+    from app.memory_graph import get_decision_graph
+
+    return get_decision_graph(project_repo=project_repo or None)
+
+
 def get_agent_memory_catalog() -> dict[str, Any]:
     """List projects/repos with Face 1 session memory (coding agent handoff logs)."""
     from app.modex_memory import get_memory_catalog

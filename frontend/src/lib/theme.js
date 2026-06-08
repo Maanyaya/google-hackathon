@@ -30,28 +30,26 @@ export const AGENT_TOOLS = {
 };
 
 export const AGENT_META = {
-  orchestrator_agent: { letter: "MC", short: "Hub" },
-  ingestion_agent: { letter: "DS", short: "Sync" },
-  knowledge_agent: { letter: "SM", short: "Memory" },
-  lineage_agent: { letter: "DP", short: "Trace" },
-  transformation_agent: { letter: "KS", short: "Struct" },
+  orchestrator_agent: { letter: "MC", short: "Plan + Govern" },
+  memory_agent: { letter: "SM", short: "Context pack" },
+  pipeline_agent: { letter: "DP", short: "Fivetran ops" },
   action_agent: { letter: "TB", short: "Broadcast" },
-  guardian_agent: { letter: "AG", short: "Govern" },
 };
 
 export const QUICK_MISSIONS = [
-  { id: "handoff", label: "Session handoff", desc: "Cursor → Antigravity replay", icon: "handoff", prompt: "What did the last Cursor agent do on github.com/demo/api-service? What should a new Antigravity agent know?" },
-  { id: "pipeline", label: "Pipeline health", desc: "Fivetran MCP status", icon: "pipeline", prompt: "Check Fivetran connections in group solve_unhurt. Is stowed_register synced?" },
-  { id: "freshness", label: "Memory sync", desc: "Face 1 vs Fivetran bus", icon: "freshness", prompt: "Compare Face 1 codebase_logs vs Fivetran modex_logs. Cite _fivetran_synced." },
-  { id: "decisions", label: "Team decisions", desc: "Architecture provenance", icon: "decision", prompt: "List architecture decisions this week from shared memory with provenance." },
-  { id: "lineage", label: "Lineage", desc: "Source → BigQuery", icon: "lineage", prompt: "Show source-to-destination lineage from Platform Connector metadata." },
-  { id: "export", label: "Standup export", desc: "GCS after Guardian OK", icon: "export", prompt: "Prepare a team standup summary of recent decisions and export to GCS after I approve." },
+  { id: "handoff", label: "Hydrate me", desc: "Cold-start → warm-start", icon: "handoff", prompt: "I'm a new agent on github.com/demo/api-service. Use get_team_context to brief me: what has the team decided, what did they reject, and what gotchas exist? Cite PRs and timestamps." },
+  { id: "decisions", label: "Why this stack?", desc: "Session ↔ GitHub PR", icon: "decision", prompt: "Did the team pick PostgreSQL or MongoDB, and why? Cross-reference the coding-agent decision with the GitHub PR and reviewer reasoning synced via Fivetran." },
+  { id: "freshness", label: "Make memory fresh", desc: "Agent operates Fivetran", icon: "freshness", prompt: "Is our shared memory stale? Check the GitHub connection's last sync, and if needed ask me to approve a sync, then prove freshness improved with _fivetran_synced." },
+  { id: "pipeline", label: "Pipeline health", desc: "Fivetran MCP status", icon: "pipeline", prompt: "Check Fivetran connections in group solve_unhurt — is the GitHub connector and stowed_register synced and healthy?" },
+  { id: "lineage", label: "Lineage", desc: "Source → BigQuery", icon: "lineage", prompt: "Trace lineage: how does a GitHub PR become a row in our shared decision memory? Use Platform Connector metadata." },
+  { id: "export", label: "Standup export", desc: "GCS after approval", icon: "export", prompt: "Prepare a team standup summary of this week's decisions (with provenance) and export to GCS after I approve." },
 ];
 
 export const NAV = [
-  { id: "overview", label: "Overview" },
+  { id: "architecture", label: "Architecture" },
   { id: "agents", label: "Agents" },
-  { id: "memory", label: "Memory" },
+  { id: "pack", label: "Context pack" },
+  { id: "decisions", label: "Decisions" },
   { id: "pipelines", label: "Pipelines" },
   { id: "mission", label: "Mission" },
 ];
