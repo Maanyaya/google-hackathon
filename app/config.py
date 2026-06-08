@@ -18,7 +18,7 @@ load_dotenv(_HACKATHON_ROOT / ".env")
 GOOGLE_CLOUD_PROJECT = os.getenv(
     "GOOGLE_CLOUD_PROJECT", "gen-lang-client-0795401430"
 )
-GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "asia-south1")
+GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
 
 FIVETRAN_API_KEY = os.getenv("FIVETRAN_API_KEY", "")
 FIVETRAN_API_SECRET = os.getenv("FIVETRAN_API_SECRET", "")
@@ -136,3 +136,20 @@ def _parse_api_keys(raw: str) -> dict[str, str]:
 # Face 1 served-over-the-web auth — per-user API keys for the hosted MoDeX API.
 # Cloud Run holds the GCP credentials; teammates only ever hold one of these keys.
 MODEX_API_KEYS = _parse_api_keys(os.getenv("MODEX_API_KEYS", ""))
+
+# Public service URL (for docs / judge setup snippets).
+MODEX_PUBLIC_URL = os.getenv(
+    "MODEX_PUBLIC_URL",
+    "https://agentic-data-platform-979112189932.asia-south1.run.app",
+)
+GITHUB_REPO_URL = os.getenv(
+    "GITHUB_REPO_URL", "https://github.com/Maanyaya/google-hackathon"
+)
+
+
+def api_key_for_developer(developer_id: str) -> str | None:
+    """Return the API secret for a developer_id (e.g. 'judge'), if configured."""
+    for secret, dev in MODEX_API_KEYS.items():
+        if dev == developer_id:
+            return secret
+    return None

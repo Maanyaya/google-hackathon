@@ -23,8 +23,8 @@ from app.agent_runtime_app import AgentEngineApp
 @pytest.fixture
 def agent_app(monkeypatch: pytest.MonkeyPatch) -> AgentEngineApp:
     """Fixture to create and set up AgentEngineApp instance"""
-    # Set integration test flag to mock external services
     monkeypatch.setenv("INTEGRATION_TEST", "TRUE")
+    monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "global")
 
     from app.agent_runtime_app import agent_runtime
 
@@ -33,6 +33,7 @@ def agent_app(monkeypatch: pytest.MonkeyPatch) -> AgentEngineApp:
 
 
 @pytest.mark.asyncio
+@pytest.mark.live_llm
 async def test_agent_stream_query(agent_app: AgentEngineApp) -> None:
     """
     Integration test for the agent stream query functionality.

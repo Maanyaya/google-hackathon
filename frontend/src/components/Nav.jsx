@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MoDeXLogo } from "../lib/icons";
 import { NAV } from "../lib/theme";
 
-export function Nav({ onNav, githubSource }) {
+export function Nav({ onNav, githubSource, onSync, syncing }) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -29,9 +29,24 @@ export function Nav({ onNav, githubSource }) {
             </button>
           ))}
         </div>
-        <button className="nav-cta" onClick={() => onNav("mission")}>
-          Run a mission
-        </button>
+        <div className="nav-actions">
+          {onSync && (
+            <button
+              className={`nav-sync ${syncing ? "is-syncing" : ""}`}
+              onClick={onSync}
+              disabled={syncing}
+              title="Resync session memory (Sheet → Fivetran → BigQuery) and refresh the dashboard"
+            >
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" className="nav-sync-icon">
+                <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5V5H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              {syncing ? "Syncing…" : "Sync data"}
+            </button>
+          )}
+          <button className="nav-cta" onClick={() => onNav("mission")}>
+            Ask Face 2
+          </button>
+        </div>
       </div>
     </nav>
   );

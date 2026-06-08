@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 import re
 from typing import Any
 
@@ -29,12 +30,15 @@ class QueryRequest(BaseModel):
 AGENT_TOPOLOGY = [
     {
         "id": "orchestrator_agent",
-        "label": "Mission Control",
-        "description": "Plans missions, delegates to specialists, and governs every write (Guardian policy)",
+        "label": "Central Memory Guide",
+        "description": (
+            "Face 2 entry point — routes your question to the right capability and "
+            "returns a cited answer from the shared memory bus or Fivetran-managed connectors."
+        ),
         "icon": "brain",
         "color": "#6366f1",
         "tools": ["guardian_approve_write", "guardian_deny_write"],
-        "policy": "Human-in-the-loop: writes blocked until the user confirms and Mission Control approves",
+        "policy": "Writes blocked until you explicitly approve",
         "delegates_to": [
             "memory_agent",
             "pipeline_agent",
@@ -43,8 +47,11 @@ AGENT_TOPOLOGY = [
     },
     {
         "id": "memory_agent",
-        "label": "Shared Memory Engine",
-        "description": "Retrieval brain — builds the cross-referenced context pack (sessions + GitHub via Fivetran), each fact dated and cited",
+        "label": "Memory Answers",
+        "description": (
+            "Answers what/why/rejected from the centralized bus — session logs fused "
+            "with GitHub PRs + reviews via Fivetran, each fact dated and cited."
+        ),
         "icon": "search",
         "color": "#10b981",
         "tools": [
@@ -62,8 +69,11 @@ AGENT_TOPOLOGY = [
     },
     {
         "id": "pipeline_agent",
-        "label": "Data Pipeline Operator",
-        "description": "Operates Fivetran end to end — connections, syncs, lineage & freshness, and dbt transformations",
+        "label": "Fivetran Operations",
+        "description": (
+            "Operates Fivetran-managed connectors — list/sync connections, Platform "
+            "Connector lineage & freshness, dbt transforms. Keeps the memory bus trustworthy."
+        ),
         "icon": "database",
         "color": "#06b6d4",
         "tools": [
@@ -84,8 +94,8 @@ AGENT_TOPOLOGY = [
     },
     {
         "id": "action_agent",
-        "label": "Team Broadcaster",
-        "description": "Turns shared memory into real outputs — GCS exports, Sheets write-back, webhooks (Guardian-gated)",
+        "label": "Governed Actions",
+        "description": "Turns memory into outputs — GCS, Sheets, webhooks. Only after you approve.",
         "icon": "send",
         "color": "#ec4899",
         "tools": [
@@ -146,6 +156,84 @@ async def get_overview() -> dict[str, Any]:
         "rag_location": config.RAG_LOCATION,
         "dbt_project": config.FIVETRAN_TRANSFORM_PROJECT_ID,
         "cloud_run_url": CLOUD_RUN_URL,
+        "github_repo": config.GITHUB_REPO_URL,
+        "demo_repo": config.MODEX_DEMO_REPO,
+    }
+
+
+@router.get("/setup")
+async def get_judge_setup() -> dict[str, Any]:
+    """Public judge + MCP setup bundle for the dashboard and JUDGES.md."""
+    judge_key = config.api_key_for_developer("judge")
+    base = config.MODEX_PUBLIC_URL.rstrip("/")
+    raw_client = (
+        f"{config.GITHUB_REPO_URL.rstrip('/')}/main/modex_mcp/remote_client.py"
+    )
+    cursor_mcp = {
+        "mcpServers": {
+            "modex-memory": {
+                "command": "python",
+                "args": ["PATH/TO/remote_client.py"],
+                "env": {
+                    "MODEX_API_URL": base,
+                    "MODEX_API_KEY": judge_key or "SEE-JUDGES-MD",
+                    "MODEX_AGENT_TOOL": "cursor",
+                },
+            }
+        }
+    }
+    return {
+        "status": "success",
+        "architecture": {
+            "face1": {
+                "name": "Developer Edge (MCP)",
+                "role": "Capture reasoning in Cursor / Antigravity / Windsurf",
+                "tools": ["load_context", "append_codebase_log", "log_decision"],
+            },
+            "bus": {
+                "name": "Memory bus (Fivetran + BigQuery)",
+                "role": "Centralized, provenance-stamped team memory",
+                "sources": ["session logs", "GitHub PRs", "Sheet mirror"],
+            },
+            "face2": {
+                "name": "Central Memory Guide",
+                "role": "Answer from memory + operate Fivetran connectors",
+                "jobs": ["Memory answers", "Fivetran operations", "Governed actions"],
+            },
+        },
+        "urls": {
+            "service": base,
+            "dashboard": f"{base}/dashboard/",
+            "dev_ui": f"{base}/dev-ui",
+            "github_repo": config.GITHUB_REPO_URL,
+            "remote_client_raw": raw_client,
+            "health": f"{base}/api/v1/health",
+            "whoami": f"{base}/api/v1/whoami",
+        },
+        "judge_mcp": {
+            "developer_id": "judge",
+            "api_key_configured": bool(judge_key),
+            "api_key": judge_key,
+            "demo_project_repo": config.MODEX_DEMO_REPO,
+            "verify_curl": (
+                f'curl -H "Authorization: Bearer {judge_key or "YOUR-KEY"}" '
+                f"{base}/api/v1/whoami"
+            ),
+            "cursor_config": cursor_mcp,
+            "install_steps": [
+                "pip install mcp",
+                f"curl -o remote_client.py {raw_client}",
+                "Paste cursor_config into ~/.cursor/mcp.json (fix path to remote_client.py)",
+                "Restart Cursor → MCP panel → modex-memory connected",
+                'Ask agent: load_context for github.com/demo/api-service',
+            ],
+        },
+        "data_flow": [
+            "Face 1 MCP writes session events to BigQuery (+ Sheet mirror via Fivetran)",
+            "Fivetran syncs GitHub PRs/reviews and MoDeX logs into BigQuery",
+            "Face 2 answers from the bus and operates Fivetran via MCP tools",
+            "Dashboard shows live context pack, decisions, pipeline freshness",
+        ],
     }
 
 
@@ -176,6 +264,39 @@ async def get_pipelines() -> dict[str, Any]:
         return {"status": "success", "pipelines": items}
     except Exception as exc:  # noqa: BLE001
         return {"status": "error", "error": str(exc), "pipelines": []}
+
+
+@router.post("/sync")
+async def sync_modex_logs() -> dict[str, Any]:
+    """Trigger a Fivetran resync of the MoDeX logs connection (Sheet -> BigQuery).
+
+    This is the dashboard "Sync data" action: it pushes the latest sheet-mirrored
+    session events through Fivetran into BigQuery so the freshness panel and charts
+    reflect the newest activity on demand instead of waiting for the schedule.
+    """
+    conn = config.FIVETRAN_MODEX_LOGS_CONNECTION_ID
+    if not conn:
+        return {"status": "error", "error": "No MoDeX logs connection configured."}
+    try:
+        result = await call_fivetran_tool(
+            "sync_connection",
+            {"connection_id": conn, "request_body": json.dumps({"force": True})},
+            allow_writes=True,
+        )
+        if result.get("status") == "error":
+            return {
+                "status": "error",
+                "error": result.get("message"),
+                "connection_id": conn,
+            }
+        return {
+            "status": "success",
+            "connection_id": conn,
+            "message": "Fivetran sync triggered — Sheet -> BigQuery refresh in progress.",
+            "data": result.get("data"),
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "error": str(exc)}
 
 
 @router.get("/pipeline/{connection_id}")

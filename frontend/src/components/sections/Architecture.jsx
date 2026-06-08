@@ -22,10 +22,10 @@ function FaceIcon({ kind }) {
 }
 
 const STEPS = [
-  { n: 1, text: "You code in your IDE. Face 1's MCP server captures the decision and the why — including what you rejected." },
-  { n: 2, text: "Fivetran syncs that reasoning (plus GitHub PRs & reviews) into BigQuery — the trusted memory bus. No glue code." },
-  { n: 3, text: "Face 2's Gemini agents cross-reference it all and build a cited context pack — operating Fivetran and governing writes." },
-  { n: 4, text: "A new session calls load_context and starts warm — with everything the team already knows. The loop closes." },
+  { n: 1, text: "Face 1 MCP (proved): coding agents capture decisions + rejected paths as they work in Cursor / Antigravity." },
+  { n: 2, text: "Fivetran-managed connectors sync sessions, GitHub PRs, and sheets into BigQuery — the centralized memory bus." },
+  { n: 3, text: "Face 2 answers from that bus: what/why/rejected with citations — and operates the Fivetran pipelines that keep it fresh." },
+  { n: 4, text: "The next agent calls load_context and starts warm. The loop closes." },
 ];
 
 export function Architecture() {
@@ -34,7 +34,7 @@ export function Architecture() {
       <SectionHead
         eyebrow="The architecture · why MoDeX exists"
         title='Two faces, <span class="grad-text">one shared brain</span>'
-        lead="MoDeX has two faces. Face 1 captures reasoning where your AI agents already work — inside the IDE. Face 2 is a deployed team of Gemini agents that serves it back, operates the data, and acts. Fivetran + BigQuery are the trusted memory bus between them."
+        lead="Face 1 MCP proved agents can write reasoning into the bus. Face 2 is the centralized memory guide — it answers real questions and operates Fivetran-managed connectors. One bus (Fivetran + BigQuery), two faces."
       />
 
       <Reveal className="arch-stage">
@@ -76,20 +76,20 @@ export function Architecture() {
         {/* FACE 2 */}
         <div className="arch-face arch-face-2">
           <div className="arch-face-top">
-            <span className="arch-face-badge">Face 2 · serve &amp; act</span>
+            <span className="arch-face-badge">Face 2 · answer &amp; operate</span>
             <span className="arch-face-ico"><FaceIcon kind="serve" /></span>
           </div>
-          <h3 className="arch-face-name">Agent Platform</h3>
-          <p className="arch-face-sub">Google ADK + Gemini · deployed on Cloud Run</p>
+          <h3 className="arch-face-name">Central Memory Guide</h3>
+          <p className="arch-face-sub">Ask the bus · operate Fivetran · act with approval</p>
           <ul className="arch-face-list">
-            <li><strong>Mission Control</strong> orchestrates 3 specialist agents</li>
-            <li>Builds the cited context pack; operates Fivetran pipelines</li>
-            <li>Governs every write — human-in-the-loop approval</li>
+            <li><strong>Answers</strong> what/why/rejected with PR + session citations</li>
+            <li><strong>Operates</strong> Fivetran-managed connectors (sync, lineage, freshness)</li>
+            <li><strong>Governs</strong> every write — you approve before anything changes</li>
           </ul>
           <div className="arch-face-foot">
-            <code>Gemini</code>
-            <code>Google ADK</code>
-            <code>MCP tools</code>
+            <code>get_team_context</code>
+            <code>fivetran_list_connections</code>
+            <code>guardian_approve</code>
           </div>
         </div>
       </Reveal>

@@ -1,10 +1,13 @@
-import { lazy, Suspense, useCallback } from "react";
-import { useDashboardBundle } from "./hooks";
+import { lazy, Suspense, useCallback, useState } from "react";
+import { useDashboardBundle, syncData } from "./hooks";
 import { Nav } from "./components/Nav";
 import { Hero } from "./components/sections/Hero";
 import { Problem } from "./components/sections/Problem";
 import { Architecture } from "./components/sections/Architecture";
 
+const Setup = lazy(() =>
+  import("./components/sections/Setup").then((m) => ({ default: m.Setup })),
+);
 const MemoryGraph = lazy(() =>
   import("./components/sections/MemoryGraph").then((m) => ({ default: m.MemoryGraph })),
 );
@@ -43,10 +46,14 @@ export default function App() {
     impact,
     pipelines,
     freshness,
+    setup,
     packLoading,
     topoLoading,
     decisionsLoading,
+    refresh,
   } = useDashboardBundle();
+
+  const [syncing, setSyncing] = useState(false);
 
   const onNav = useCallback((id) => {
     if (id === "top") {
@@ -56,12 +63,30 @@ export default function App() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
+  const onSync = useCallback(async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      await syncData();
+    } catch {
+      // Fivetran sync may be unavailable; still refresh from BigQuery below.
+    }
+    try {
+      await refresh();
+    } finally {
+      setSyncing(false);
+    }
+  }, [syncing, refresh]);
+
   return (
     <>
-      <Nav onNav={onNav} githubSource={overview?.github_source} />
+      <Nav onNav={onNav} githubSource={overview?.github_source} onSync={onSync} syncing={syncing} />
       <Hero overview={overview} decisions={decisions} impact={impact} onNav={onNav} />
       <Problem />
       <Architecture />
+      <Suspense fallback={<SectionFallback min={400} />}>
+        <Setup setup={setup} loading={!setup && packLoading} />
+      </Suspense>
 
       <Suspense fallback={<SectionFallback min={480} />}>
         <MemoryGraph decisions={decisions} />

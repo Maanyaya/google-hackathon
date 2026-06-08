@@ -44,6 +44,32 @@ MEMORY_SHEET_ID = _parse_sheet_id(
 MEMORY_SHEET_RANGE = os.getenv("MODEX_MEMORY_SHEET_RANGE", "MoDeX Memory!A1")
 LOG_SHEET_RANGE = os.getenv("MODEX_LOG_SHEET_RANGE", "MoDex_Logs!A1")
 
+# On Cloud Run the runtime (compute) SA has no Sheets access, so we impersonate
+# the dedicated sheet-writer SA the spreadsheet is shared with. Locally this is
+# unset and we fall back to the ambient credentials (the sheet-writer key).
+SHEET_IMPERSONATE_SA = os.getenv("MODEX_SHEET_IMPERSONATE_SA", "")
+SHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+
+
+def _sheet_access_token() -> str:
+    """Mint an OAuth token with Sheets scope, impersonating if configured."""
+    request = google.auth.transport.requests.Request()
+    if SHEET_IMPERSONATE_SA:
+        from google.auth import impersonated_credentials
+
+        source, _ = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+        creds = impersonated_credentials.Credentials(
+            source_credentials=source,
+            target_principal=SHEET_IMPERSONATE_SA,
+            target_scopes=SHEET_SCOPES,
+        )
+    else:
+        creds, _ = google.auth.default(scopes=SHEET_SCOPES)
+    creds.refresh(request)
+    return creds.token
+
 VALID_EVENT_TYPES = frozenset({
     "session_start",
     "user_prompt",
@@ -159,10 +185,7 @@ def _append_sheet_row(row: dict[str, Any], columns: list[str], range_name: str) 
         return None
 
     values = [[str(row.get(col, "")) for col in columns]]
-    creds, _ = google.auth.default(
-        scopes=["https://www.googleapis.com/auth/spreadsheets"]
-    )
-    creds.refresh(google.auth.transport.requests.Request())
+    token = _sheet_access_token()
     url = (
         f"https://sheets.googleapis.com/v4/spreadsheets/{MEMORY_SHEET_ID}/values/"
         f"{range_name}:append?valueInputOption=USER_ENTERED"
@@ -172,7 +195,7 @@ def _append_sheet_row(row: dict[str, Any], columns: list[str], range_name: str) 
         url,
         data=body,
         headers={
-            "Authorization": f"Bearer {creds.token}",
+            "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         },
         method="POST",

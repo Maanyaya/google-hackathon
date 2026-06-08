@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 from google.adk.agents.run_config import RunConfig, StreamingMode
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
@@ -20,10 +21,17 @@ from google.genai import types
 from app.agent import root_agent
 
 
+@pytest.fixture(autouse=True)
+def _vertex_global(monkeypatch: pytest.MonkeyPatch) -> None:
+    """gemini-2.5-flash is available at global, not all regional endpoints."""
+    monkeypatch.setenv("GOOGLE_CLOUD_LOCATION", "global")
+
+
+@pytest.mark.live_llm
 def test_agent_stream() -> None:
     """
     Integration test for the agent stream functionality.
-    Tests that the agent returns valid streaming responses.
+    Tests that Mission Control returns valid streaming responses on a MoDeX prompt.
     """
 
     session_service = InMemorySessionService()
@@ -32,7 +40,12 @@ def test_agent_stream() -> None:
     runner = Runner(agent=root_agent, session_service=session_service, app_name="test")
 
     message = types.Content(
-        role="user", parts=[types.Part.from_text(text="Why is the sky blue?")]
+        role="user",
+        parts=[
+            types.Part.from_text(
+                text="In one sentence: what is MoDeX Mission Control responsible for?"
+            )
+        ],
     )
 
     events = list(

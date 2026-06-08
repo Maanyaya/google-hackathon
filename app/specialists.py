@@ -1,12 +1,11 @@
-"""MoDeX specialists — 3 powerful, tool-rich agents under Mission Control.
+"""MoDeX specialists — three answerable capabilities behind Face 2.
 
-Collapsed from 6 narrow agents into 3 that each own a clear domain:
-  - memory_agent    : retrieval brain (context pack, BQ, RAG, GitHub-via-Fivetran)
-  - pipeline_agent  : Fivetran data-ops (connections, sync, lineage, freshness, dbt)
-  - action_agent    : governed outputs (GCS, Sheets, webhooks)
+Face 2 is not "orchestrator theater". It exists so teams can:
+  1. Answer from centralized memory (memory_agent)
+  2. Operate Fivetran-managed connectors (pipeline_agent)
+  3. Act with human approval (action_agent)
 
-Guardian is no longer an agent — it's a policy enforced by Mission Control
-(guardian_approve_write / guardian_deny_write) plus in-tool write gates.
+The root agent routes silently; users get cited answers, not delegation narration.
 """
 
 from __future__ import annotations
@@ -20,7 +19,7 @@ from app import config
 from app import tools as T
 
 _MODEL = Gemini(
-    model="gemini-2.0-flash",
+    model="gemini-2.5-flash",
     retry_options=types.HttpRetryOptions(attempts=3),
 )
 

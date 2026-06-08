@@ -1,8 +1,8 @@
 import { Section, SectionHead } from "../ui/Section";
 import { Reveal, RevealGroup } from "../ui/Reveal";
-import { AGENT_META } from "../../lib/theme";
+import { AGENT_META, FACE2_AGENDA } from "../../lib/theme";
 
-const FRAMEWORK = ["Gemini", "Google ADK", "MCP tools", "Cloud Run"];
+const FRAMEWORK = ["Gemini", "Google ADK", "Fivetran MCP", "Cloud Run"];
 
 function ToolChips({ tools = [], max = 5 }) {
   const shown = tools.slice(0, max);
@@ -15,26 +15,22 @@ function ToolChips({ tools = [], max = 5 }) {
   );
 }
 
-function AgentCard({ a, lead }) {
+function AgentCard({ a }) {
   const meta = AGENT_META[a.id] || { letter: "AI", short: "" };
   return (
-    <Reveal className={`agent-card card card-hover ${lead ? "agent-lead" : ""}`} style={{ "--agent": a.color }}>
+    <Reveal className="agent-card card card-hover" style={{ "--agent": a.color }}>
       <div className="agent-card-head">
         <span className="agent-badge">{meta.letter}</span>
         <div>
           <h3 className="agent-name">{a.label}</h3>
-          <span className="agent-role">{lead ? "Orchestrator" : meta.short}</span>
+          <span className="agent-role">{meta.short}</span>
         </div>
-        {lead && <span className="agent-lead-tag">root agent</span>}
       </div>
       <p className="agent-desc">{a.description}</p>
-      <ToolChips tools={a.tools} max={lead ? 4 : 5} />
+      <ToolChips tools={a.tools} max={5} />
       <div className="agent-foot">
-        {a.mcp ? <span className="agent-mcp">⚙ {a.mcp}</span> : null}
-        {a.policy ? <span className="agent-mcp agent-policy">🛡 {a.policy}</span> : null}
-        {a.delegates_to?.length ? (
-          <span className="agent-delegates">→ delegates to {a.delegates_to.length} specialists</span>
-        ) : null}
+        {a.mcp ? <span className="agent-mcp">{a.mcp}</span> : null}
+        {a.policy ? <span className="agent-mcp agent-policy">{a.policy}</span> : null}
       </div>
     </Reveal>
   );
@@ -42,37 +38,44 @@ function AgentCard({ a, lead }) {
 
 export function Agents({ topology, loading }) {
   const agents = topology?.agents || [];
-  const lead = agents.find((a) => a.id === "orchestrator_agent");
-  const specialists = agents.filter((a) => a.id !== "orchestrator_agent");
+  const byId = Object.fromEntries(agents.map((a) => [a.id, a]));
+  const capabilityAgents = ["memory_agent", "pipeline_agent", "action_agent"]
+    .map((id) => byId[id])
+    .filter(Boolean);
 
   return (
     <Section id="agents" theme="light">
       <SectionHead
-        eyebrow="Face 2 · the agent framework"
-        title='A team of agents, <span class="grad-text">one governed brain</span>'
-        lead="This is what runs on Face 2. Built on Google ADK and Gemini, Mission Control plans and delegates to three specialist sub-agents — each with its own MCP tools. Every write is gated by a human-in-the-loop Guardian policy."
+        eyebrow="Face 2 · why we built it"
+        title='A <span class="grad-text">centralized memory guide</span> that actually answers'
+        lead="Face 1 MCP proved agents can capture reasoning into the bus. Face 2 exists so anyone can ask that bus real questions — and operate the Fivetran-managed connectors that keep it fresh. No orchestrator theater: three clear jobs, cited answers."
       />
+
+      <RevealGroup className="face2-agenda">
+        {FACE2_AGENDA.map((item) => (
+          <div key={item.id} className="face2-agenda-card card">
+            <span className="face2-agenda-n">{item.n}</span>
+            <h3 className="face2-agenda-title">{item.title}</h3>
+            <p className="face2-agenda-desc">{item.desc}</p>
+            <ul className="face2-agenda-examples">
+              {item.examples.map((ex) => (
+                <li key={ex}>{ex}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </RevealGroup>
 
       <Reveal className="agent-framework">
         {FRAMEWORK.map((f) => <span key={f} className="agent-fw-badge">{f}</span>)}
       </Reveal>
 
       {loading && !topology ? (
-        <div className="dec-empty">Loading agent topology…</div>
+        <div className="dec-empty">Loading capabilities…</div>
       ) : (
-        <>
-          {lead && (
-            <RevealGroup className="agent-lead-wrap">
-              <AgentCard a={lead} lead />
-            </RevealGroup>
-          )}
-          <Reveal className="agent-delegate-rail" aria-hidden>
-            <span className="agent-rail-label">delegates to</span>
-          </Reveal>
-          <RevealGroup className="agent-grid">
-            {specialists.map((a) => <AgentCard key={a.id} a={a} />)}
-          </RevealGroup>
-        </>
+        <RevealGroup className="agent-grid">
+          {capabilityAgents.map((a) => <AgentCard key={a.id} a={a} />)}
+        </RevealGroup>
       )}
     </Section>
   );
