@@ -73,11 +73,13 @@ def _sheet_access_token() -> str:
 VALID_EVENT_TYPES = frozenset({
     "session_start",
     "user_prompt",
+    "agent_response",
     "tool_call",
     "file_edit",
     "decision",
     "error",
     "session_end",
+    "context_compressed",
 })
 
 CODEBASE_LOG_COLUMNS = [
@@ -93,6 +95,9 @@ CODEBASE_LOG_COLUMNS = [
     "payload_json",
     "parent_event_id",
     "created_at",
+    "context_json",
+    "transcript_md",
+    "session_summary",
 ]
 
 MEMORY_COLUMNS = [
@@ -105,6 +110,8 @@ MEMORY_COLUMNS = [
     "decisions_json",
     "files_touched",
     "rejected_approaches",
+    "context_json",
+    "transcript_md",
     "created_at",
 ]
 
@@ -143,6 +150,9 @@ def ensure_codebase_logs_table() -> dict[str, Any]:
         bigquery.SchemaField("payload_json", "STRING"),
         bigquery.SchemaField("parent_event_id", "STRING"),
         bigquery.SchemaField("created_at", "TIMESTAMP", mode="REQUIRED"),
+        bigquery.SchemaField("context_json", "STRING"),
+        bigquery.SchemaField("transcript_md", "STRING"),
+        bigquery.SchemaField("session_summary", "STRING"),
     ]
     table = bigquery.Table(CODEBASE_LOGS_FULL_TABLE, schema=schema)
     client.create_table(table, exists_ok=True)
@@ -236,6 +246,9 @@ def append_codebase_log(
     commit_sha: str | None = None,
     payload: dict[str, Any] | None = None,
     parent_event_id: str | None = None,
+    context_json: str | dict[str, Any] | None = None,
+    transcript_md: str | None = None,
+    session_summary: str | None = None,
 ) -> dict[str, Any]:
     """Append one immutable event to codebase_logs (primary MoDeX memory)."""
     if event_type not in VALID_EVENT_TYPES:
@@ -246,6 +259,24 @@ def append_codebase_log(
 
     sid = session_id or str(uuid.uuid4())
     created = _now_iso()
+    pl = dict(payload or {})
+    if context_json is not None:
+        pl["context_json"] = (
+            context_json if isinstance(context_json, dict)
+            else json.loads(context_json) if isinstance(context_json, str) and context_json.strip().startswith("{")
+            else context_json
+        )
+    if transcript_md:
+        pl["transcript_md"] = transcript_md
+
+    ctx_col = ""
+    if context_json is not None:
+        ctx_col = (
+            context_json if isinstance(context_json, str)
+            else json.dumps(context_json, default=str)
+        )
+    md_col = transcript_md or ""
+
     row = {
         "event_id": str(uuid.uuid4()),
         "session_id": sid,
@@ -256,13 +287,19 @@ def append_codebase_log(
         "file_path": file_path or "",
         "commit_sha": commit_sha or "",
         "summary": summary[:4000],
-        "payload_json": json.dumps(payload or {}),
+        "payload_json": json.dumps(pl, default=str),
         "parent_event_id": parent_event_id or "",
         "created_at": created,
+        "context_json": ctx_col[:50000] if ctx_col else "",
+        "transcript_md": md_col[:50000] if md_col else "",
+        "session_summary": (session_summary or "")[:4000],
     }
 
     client = _bq_client()
     errors = client.insert_rows_json(CODEBASE_LOGS_FULL_TABLE, [row])
+    if errors:
+        slim = {k: v for k, v in row.items() if k not in ("context_json", "transcript_md")}
+        errors = client.insert_rows_json(CODEBASE_LOGS_FULL_TABLE, [slim])
     if errors:
         return {"status": "error", "message": str(errors)}
 
@@ -278,16 +315,17 @@ def append_codebase_log(
     }
 
 
-def load_context_from_logs(
+def _fetch_log_events(
     project_repo: str,
-    limit: int = 50,
-    event_types: list[str] | None = None,
+    *,
+    limit: int = 200,
     session_id: str | None = None,
-) -> dict[str, Any]:
-    """Replay recent codebase logs to hydrate a new agent session."""
-    limit = max(1, min(limit, 200))
+    event_types: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Load raw codebase log rows from BigQuery."""
+    limit = max(1, min(limit, 500))
     where = "project_repo = @project_repo"
-    params: list[bigquery.ScalarQueryParameter] = [
+    params: list[bigquery.ScalarQueryParameter | bigquery.ArrayQueryParameter] = [
         bigquery.ScalarQueryParameter("project_repo", "STRING", project_repo),
     ]
     if session_id:
@@ -307,11 +345,160 @@ def load_context_from_logs(
         LIMIT {limit}
     """
     client = _bq_client()
+    result = client.query(
+        sql, job_config=bigquery.QueryJobConfig(query_parameters=params)
+    ).result()
+    return _normalize_events([dict(r.items()) for r in result])
+
+
+def save_compressed_context(
+    *,
+    developer_id: str,
+    agent_tool: str,
+    project_repo: str,
+    session_id: str | None = None,
+    event_limit: int = 300,
+) -> dict[str, Any]:
+    """Compress raw session/repo logs into JSON and persist as context_compressed event.
+
+    The full JSON lives in payload_json (synced by Fivetran from MoDex_Logs sheet).
+    This is structural compression — dedupe/group — not LLM summarization.
+    """
+    from modex_mcp.context_compress import (
+        compress_events,
+        compression_summary_line,
+        render_hydration_from_context,
+    )
+
     try:
-        result = client.query(
-            sql, job_config=bigquery.QueryJobConfig(query_parameters=params)
-        ).result()
-        events = _normalize_events([dict(r.items()) for r in result])
+        events = _fetch_log_events(
+            project_repo,
+            limit=event_limit,
+            session_id=session_id,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "message": str(exc)}
+
+    if not events:
+        return {
+            "status": "success",
+            "project_repo": project_repo,
+            "session_id": session_id,
+            "context_json": {},
+            "message": "No events to compress.",
+        }
+
+    chronological = list(reversed(events))
+    context_json = compress_events(
+        chronological,
+        project_repo=project_repo,
+        session_id=session_id,
+    )
+    from modex_mcp.context_compress import render_hydration_from_context
+
+    # Use the briefing-inclusive handoff (system context + full transcript) that
+    # compress_events already built, so the Sheet/BQ transcript_md column gives
+    # the next agent the actionable briefing, not just a raw transcript.
+    transcript_md = context_json.get("transcript_md") or render_hydration_from_context(
+        context_json
+    )
+    summary = compression_summary_line(context_json)
+    session_summary = context_json.get("session_summary") or ""
+
+    log_result = append_codebase_log(
+        developer_id=developer_id,
+        agent_tool=agent_tool,
+        project_repo=project_repo,
+        event_type="context_compressed",
+        summary=summary[:4000],
+        session_id=session_id or chronological[-1].get("session_id"),
+        payload={
+            "context_json": context_json,
+            "transcript_md": transcript_md,
+            "compression": "deterministic",
+            "not_summarized": True,
+        },
+        context_json=context_json,
+        transcript_md=transcript_md,
+        session_summary=session_summary,
+    )
+    if log_result.get("status") != "success":
+        return log_result
+
+    return {
+        "status": "success",
+        "event_id": log_result.get("event_id"),
+        "session_id": log_result.get("session_id"),
+        "context_json": context_json,
+        "transcript_md": transcript_md,
+        "hydration_prompt": transcript_md or render_hydration_from_context(context_json),
+        "summary": summary,
+        "fivetran_mirror": log_result.get("fivetran_mirror"),
+        "message": (
+            "Compressed context saved. Fivetran will sync payload_json to BigQuery "
+            "for other agents to load_context."
+        ),
+    }
+
+
+def load_latest_compressed_context(
+    project_repo: str,
+    *,
+    limit: int = 3,
+) -> dict[str, Any]:
+    """Fetch the most recent context_compressed JSON packs for a repo."""
+    from modex_mcp.context_compress import merge_context_blobs
+
+    try:
+        rows = _fetch_log_events(
+            project_repo,
+            limit=max(1, min(limit, 10)),
+            event_types=["context_compressed"],
+        )
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "message": str(exc)}
+
+    blobs: list[dict[str, Any]] = []
+    for row in reversed(rows):
+        payload = row.get("payload_json") or {}
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except json.JSONDecodeError:
+                payload = {}
+        blob = payload.get("context_json")
+        if isinstance(blob, dict):
+            blobs.append(blob)
+
+    if not blobs:
+        return {"status": "success", "project_repo": project_repo, "context_json": None, "packs": []}
+
+    merged = merge_context_blobs(blobs, project_repo) if len(blobs) > 1 else blobs[-1]
+    return {
+        "status": "success",
+        "project_repo": project_repo,
+        "context_json": merged,
+        "transcript_md": (merged or {}).get("transcript_md") if isinstance(merged, dict) else None,
+        "packs": blobs,
+        "pack_count": len(blobs),
+    }
+
+
+def load_context_from_logs(
+    project_repo: str,
+    limit: int = 50,
+    event_types: list[str] | None = None,
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """Replay recent codebase logs to hydrate a new agent session."""
+    limit = max(1, min(limit, 200))
+    try:
+        events = _fetch_log_events(
+            project_repo,
+            limit=limit,
+            session_id=session_id,
+            event_types=event_types,
+        )
     except Exception as exc:  # noqa: BLE001
         return {
             "status": "error",
@@ -363,6 +550,17 @@ def load_context_from_logs(
             "Recent errors: " + "; ".join(e.get("summary", "") for e in errors[-3:])
         )
 
+    compressed = load_latest_compressed_context(project_repo)
+    context_json = compressed.get("context_json") if compressed.get("status") == "success" else None
+    transcript_md = compressed.get("transcript_md") if compressed.get("status") == "success" else None
+    hydration = "\n".join(hydration_parts)
+    if transcript_md:
+        hydration = transcript_md
+    elif context_json:
+        from modex_mcp.context_compress import render_hydration_from_context
+
+        hydration = render_hydration_from_context(context_json)
+
     return {
         "status": "success",
         "project_repo": project_repo,
@@ -370,7 +568,9 @@ def load_context_from_logs(
         "events": chronological,
         "decision_count": len(decisions),
         "file_edit_count": len(edits),
-        "hydration_prompt": "\n".join(hydration_parts),
+        "context_json": context_json,
+        "transcript_md": transcript_md,
+        "hydration_prompt": hydration,
     }
 
 
@@ -420,6 +620,15 @@ def save_memory(
         )
 
     created = _now_iso()
+    compressed_result = save_compressed_context(
+        developer_id=developer_id,
+        agent_tool=agent_tool,
+        project_repo=project_repo,
+        session_id=sid,
+    )
+    context_json = compressed_result.get("context_json") or {}
+    transcript_md = compressed_result.get("transcript_md") or ""
+
     legacy_row = {
         "session_id": sid,
         "developer_id": developer_id,
@@ -430,6 +639,8 @@ def save_memory(
         "decisions_json": json.dumps(decisions or []),
         "files_touched": json.dumps(files_touched or []),
         "rejected_approaches": json.dumps(rejected_approaches or []),
+        "context_json": json.dumps(context_json, default=str),
+        "transcript_md": transcript_md[:50000],
         "created_at": created,
     }
     client = _bq_client()
@@ -440,10 +651,14 @@ def save_memory(
         "status": "success",
         "session_id": sid,
         "event_id": log_result.get("event_id"),
+        "compressed_event_id": compressed_result.get("event_id"),
+        "context_json": context_json,
+        "transcript_md": transcript_md,
+        "hydration_prompt": compressed_result.get("hydration_prompt"),
         "table": CODEBASE_LOGS_FULL_TABLE,
         "created_at": created,
         "message": (
-            "Session logged to codebase_logs. Next agent: call load_context_from_logs."
+            "Session logged + compressed JSON + transcript saved. Next agent: call load_context."
         ),
     }
 

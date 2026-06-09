@@ -117,6 +117,7 @@ async def list_tools() -> list[Tool]:
                             "decision",
                             "error",
                             "session_end",
+                            "context_compressed",
                         ],
                     },
                     "summary": {"type": "string"},
@@ -175,6 +176,23 @@ async def list_tools() -> list[Tool]:
                     "project_repo": {"type": "string"},
                     "limit": {"type": "integer", "default": 50},
                     "session_id": {"type": "string"},
+                },
+                "required": ["project_repo"],
+            },
+        ),
+        Tool(
+            name="compress_context",
+            description=(
+                "Compress raw logs into structured JSON (modex.context.v1) and save. "
+                "Deterministic dedupe — not LLM summarization. Syncs via Fivetran."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "project_repo": {"type": "string"},
+                    "session_id": {"type": "string"},
+                    "event_limit": {"type": "integer", "default": 300},
+                    "agent_tool": {"type": "string"},
                 },
                 "required": ["project_repo"],
             },
@@ -254,6 +272,17 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 "files_touched": args.get("files_touched"),
                 "rejected_approaches": args.get("rejected_approaches"),
                 "session_id": args.get("session_id"),
+            },
+        )
+    elif name == "compress_context":
+        result = _request(
+            "POST",
+            "/api/v1/memory/compress",
+            body={
+                "agent_tool": tool,
+                "project_repo": args.get("project_repo"),
+                "session_id": args.get("session_id"),
+                "event_limit": args.get("event_limit", 300),
             },
         )
     elif name == "load_context_from_logs":

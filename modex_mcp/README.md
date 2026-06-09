@@ -121,31 +121,72 @@ Hosted API surface (all under `/api/v1`, bearer-auth except `/health`):
 | `get_memory_catalog` | **Read** | Repos with log activity |
 
 ### Event types
-`session_start` · `user_prompt` · `tool_call` · `file_edit` · `decision` · `error` · `session_end`
+`session_start` · `user_prompt` · `agent_response` · `tool_call` · `file_edit` · `decision` · `error` · `session_end` · `context_compressed`
 
 ## Automated logging (Cursor hooks)
 
-MoDeX can log **without** asking the agent to call MCP tools. Project hooks live at the hackathon root:
+MoDeX logs **without** asking the agent to call MCP tools. Project hooks live at
+the workspace root in `.cursor/hooks.json` and call the runner **directly** with
+`python.exe`:
 
 | Event | Auto action |
 |-------|-------------|
 | `sessionStart` | Log session start + **inject context pack** into the agent |
-| `beforeSubmitPrompt` | Log every user message |
-| `afterFileEdit` | Log every agent file edit |
-| `postToolUse` | Log Shell + MCP tool calls (skips modex-memory to avoid duplicates) |
+| `beforeSubmitPrompt` | Log the full user message (also opens the session on resumed chats) |
+| `afterAgentResponse` | Log the agent's full reply |
+| `afterFileEdit` | Log file edits (skips empty/no-path noise) |
+| `postToolUse` | Log tool calls with full input |
+| `afterShellExecution` | Log shell commands + output |
+| `afterMCPExecution` | Log MCP tool calls (skips modex-memory) |
 | `postToolUseFailure` | Log errors |
-| `sessionEnd` | Log session end |
+| `stop` | Refresh the compressed handoff (`context_compressed`) |
+| `sessionEnd` | Log session end + compress + write `.agents/modex-transcript.md` |
 
-**Enable:** open this repo root in Cursor → hooks load from `.cursor/hooks.json`. Restart Cursor if needed. Check **Settings → Hooks**.
+> **Windows critical:** hooks must invoke `python.exe` directly. Routing through
+> a `.cmd`/`.bat` wrapper drops stdin (hooks fire with empty payloads). Cursor
+> also pipes stdin as **UTF-16LE**; the runner decodes UTF-16/UTF-8/BOM
+> automatically.
 
-**Configure:** edit `.cursor/modex.json`:
+**Enable:** open the workspace root in Cursor → hooks load from
+`.cursor/hooks.json`. Restart Cursor. Check **Settings → Hooks**, then send a
+message and confirm `.agents/modex-hook-debug.log` shows `"parsed": true` with a
+real `conversation_id`.
+
+**Configure:** edit `.cursor/modex.json` (and `.agents/modex.json`):
 
 ```json
 {
-  "project_repo": "github.com/demo/api-service",
+  "project_repo": "github.com/Maanyaya/google-hackathon",
   "agent_tool": "cursor",
+  "developer_id": "",
   "auto_hydrate": true
 }
+```
+
+## Deterministic handoff CLI (hook-independent backbone)
+
+Guarantees context transfer even if an IDE's hooks misbehave:
+
+```bash
+# Agent A — compress repo memory into one handoff row (BigQuery + Sheet) + self-verify
+python -m modex_mcp.handoff snapshot --repo github.com/Maanyaya/google-hackathon
+
+# Agent B (any tool/OS) — load the SAME system context to resume
+python -m modex_mcp.handoff hydrate  --repo github.com/Maanyaya/google-hackathon
+
+# Show memory counts + freshness
+python -m modex_mcp.handoff status   --repo github.com/Maanyaya/google-hackathon
+```
+
+`hydrate` returns a **system-context briefing** (decisions, files in flight,
+unresolved errors, last user ask, last agent reply) followed by the full
+transcript — identical to what `load_context` serves over MCP.
+
+**Verify the pipeline end to end** (fires hooks exactly like Cursor via UTF-16LE
+stdin, writes to BQ + Sheet, reads the sheet cells back, hydrates as Agent B):
+
+```bash
+python scripts/verify_pipeline_rigorous.py   # prints OVERALL: PASS
 ```
 
 For **Antigravity**, hooks live in `.agents/hooks.json` (project root). Same auto-logging as Cursor:
@@ -201,20 +242,29 @@ Edit `%USERPROFILE%\.cursor\mcp.json` (or project `.cursor/mcp.json`):
 
 Use Application Default Credentials (`gcloud auth application-default login`) if you omit `GOOGLE_APPLICATION_CREDENTIALS`.
 
-### 3. Optional — mirror to Google Sheets (Fivetran path)
+### 3. Google Sheets mirror (Fivetran bus)
 
-Set in `.env`:
+Every Face 1 event is mirrored to the spreadsheet so Fivetran can sync it to BigQuery for **other developers' agents**.
 
-```
-MODEX_MEMORY_SHEET_ID=<your-google-sheet-id>
-MODEX_MEMORY_SHEET_RANGE=MoDeX Memory!A1
-```
+**Tab `MoDex_Logs`** (every raw event + compressed handoff pack):
 
-Add a **MoDeX Memory** tab with headers:
+`event_id, session_id, developer_id, agent_tool, project_repo, event_type, file_path, commit_sha, summary, payload_json, parent_event_id, created_at, context_json, transcript_md`
 
-`session_id, developer_id, agent_tool, project_repo, memory_type, summary, decisions_json, files_touched, rejected_approaches, created_at`
+| event_type | What lands in the sheet |
+|------------|-------------------------|
+| `file_edit`, `tool_call`, `user_prompt`, … | One row per IDE action; `summary` = short label; `payload_json` = structured extras |
+| `context_compressed` | **Full handoff** in `context_json` + **`transcript_md`** (complete chat as Markdown) |
+| `session_end` | Session boundary; triggers auto-compress via hooks |
 
-Fivetran Sheets connector syncs this tab → BigQuery for the full pipeline story.
+Fivetran connector `stowed_register` syncs `MoDex_Logs` → `modex_logs.modex_logs` in BigQuery.
+
+**Tab `MoDeX Memory`** (session handoff row — one per `save_session_memory`):
+
+`session_id, developer_id, agent_tool, project_repo, memory_type, summary, decisions_json, files_touched, rejected_approaches, context_json, created_at`
+
+The `context_json` column holds the same structured pack so teammates loading via Fivetran get dense, machine-readable context.
+
+**Compress manually:** call MCP tool `compress_context(project_repo=...)` or `POST /api/v1/memory/compress`.
 
 ## Demo flow (session handoff)
 

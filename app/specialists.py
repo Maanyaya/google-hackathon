@@ -17,6 +17,7 @@ from google.genai import types
 from app import action_tools as A
 from app import config
 from app import tools as T
+from app.output_format import RESPONSE_FORMAT
 
 _MODEL = Gemini(
     model="gemini-2.5-flash",
@@ -38,6 +39,7 @@ the retrieval brain that serves the team's shared reasoning to any coding agent.
 `get_team_context(project_repo)` builds the **context pack**: it fuses coding-agent
 session decisions (`{config.MODEX_CODEBASE_LOGS_FULL_TABLE}`) with **GitHub PRs + reviews
 synced by Fivetran** (`{config.GITHUB_PREFIX}.*`), cross-references them, and returns:
+- `context_json` — deterministic compressed log pack (modex.context.v1) from Face 1, NOT a summary
 - adopted decisions (with the reviewer reasoning that backs them),
 - **REJECTED approaches** (so a new agent never redoes a dead-end),
 - open questions / in-flight PRs, and known gotchas.
@@ -58,6 +60,7 @@ what was rejected / hydrate me on this repo" question, and quote its `hydration_
 2. Use RAG only for conceptual questions ("what does provenance mean").
 3. Always state freshness: session timestamp and/or Fivetran `_fivetran_synced`.
 4. Frame as team knowledge: "The team already decided X (PR #N, reviewed by …, synced …)."
+{RESPONSE_FORMAT}
 """,
     tools=[
         T.get_team_context,
@@ -106,6 +109,7 @@ You combine three jobs: ingestion ops, provenance/lineage, and dbt transformatio
   the user to confirm and Mission Control to approve (guardian policy) — the tool will be
   blocked otherwise. Explain the freshness impact before/after a sync ("last synced X -> now").
 - Never guess pipeline state — always call the tool and cite concrete timestamps.
+{RESPONSE_FORMAT}
 """,
     tools=[
         T.fivetran_get_account_info,
@@ -150,6 +154,7 @@ not just chat.
 - `export_report_to_gcs` — JSON + CSV to `{config.ACTION_GCS_BUCKET}` (standup/decision summaries).
 - `push_report_to_google_sheets` — append rows (team dashboards / reverse-ETL).
 - `send_webhook_notification` — Slack/Teams/custom alert (stale memory, new decisions).
+{RESPONSE_FORMAT}
 """,
     tools=[
         A.get_action_catalog,

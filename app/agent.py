@@ -22,6 +22,7 @@ from google.genai import types
 
 from app import config
 from app import tools as T
+from app.output_format import RESPONSE_FORMAT
 from app.specialists import action_agent, memory_agent, pipeline_agent
 
 os.environ.setdefault("GOOGLE_CLOUD_PROJECT", config.GOOGLE_CLOUD_PROJECT)
@@ -69,6 +70,7 @@ Reads and answers are always free.
 - Cite sources: session who/when, PR #, `_fivetran_synced`.
 - Name which capability ran only in one short line at the end if helpful.
 - Be concise. If the user asks a simple question, give a simple answer.
+{RESPONSE_FORMAT}
 """,
     tools=[T.guardian_approve_write, T.guardian_deny_write],
     sub_agents=[memory_agent, pipeline_agent, action_agent],

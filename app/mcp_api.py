@@ -29,6 +29,7 @@ from modex_mcp.memory_store import (
     load_context_from_logs,
     load_session_history,
     log_decision,
+    save_compressed_context,
     save_memory,
 )
 
@@ -104,6 +105,13 @@ class SessionEndBody(BaseModel):
     session_id: str | None = None
 
 
+class CompressBody(BaseModel):
+    agent_tool: str
+    project_repo: str
+    session_id: str | None = None
+    event_limit: int = 300
+
+
 @router.get("/health")
 def health() -> dict[str, Any]:
     """Unauthenticated readiness probe + whether the server is share-ready."""
@@ -167,6 +175,20 @@ def api_session_end(
         files_touched=body.files_touched,
         rejected_approaches=body.rejected_approaches,
         session_id=body.session_id,
+    )
+
+
+@router.post("/memory/compress")
+def api_compress(
+    body: CompressBody, developer: str = Depends(require_developer)
+) -> dict[str, Any]:
+    """Deterministic JSON compression of raw logs (not LLM summarization)."""
+    return save_compressed_context(
+        developer_id=developer,
+        agent_tool=body.agent_tool,
+        project_repo=body.project_repo,
+        session_id=body.session_id,
+        event_limit=body.event_limit,
     )
 
 

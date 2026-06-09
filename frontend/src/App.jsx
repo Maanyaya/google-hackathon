@@ -29,6 +29,12 @@ const Pipelines = lazy(() =>
 const Mission = lazy(() =>
   import("./components/sections/Mission").then((m) => ({ default: m.Mission })),
 );
+const FlowDiagram = lazy(() =>
+  import("./components/sections/FlowDiagram").then((m) => ({ default: m.FlowDiagram })),
+);
+const DemoVideo = lazy(() =>
+  import("./components/sections/DemoVideo").then((m) => ({ default: m.DemoVideo })),
+);
 const Footer = lazy(() =>
   import("./components/sections/Footer").then((m) => ({ default: m.Footer })),
 );
@@ -57,10 +63,10 @@ export default function App() {
 
   const onNav = useCallback((id) => {
     if (id === "top") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: "instant" });
       return;
     }
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById(id)?.scrollIntoView({ behavior: "instant", block: "start" });
   }, []);
 
   const onSync = useCallback(async () => {
@@ -84,6 +90,12 @@ export default function App() {
       <Hero overview={overview} decisions={decisions} impact={impact} onNav={onNav} />
       <Problem />
       <Architecture />
+      <Suspense fallback={<SectionFallback min={600} />}>
+        <FlowDiagram />
+      </Suspense>
+      <Suspense fallback={<SectionFallback min={420} />}>
+        <DemoVideo />
+      </Suspense>
       <Suspense fallback={<SectionFallback min={400} />}>
         <Setup setup={setup} loading={!setup && packLoading} />
       </Suspense>

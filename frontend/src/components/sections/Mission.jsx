@@ -4,6 +4,7 @@ import { Reveal } from "../ui/Reveal";
 import { MissionIcon } from "../../lib/icons";
 import { QUICK_MISSIONS } from "../../lib/theme";
 import { runMission } from "../../hooks";
+import { AgentAnswer } from "../ui/AgentAnswer";
 
 function formatElapsed(ms) {
   if (!ms) return "";
@@ -139,8 +140,7 @@ export function Mission() {
               </div>
             )}
             <div className="mission-answer">
-              {(result.texts || []).map((t, i) => <p key={i}>{t}</p>)}
-              {!result.texts?.length && <p className="mission-answer-empty">Mission completed — no text response.</p>}
+              <AgentAnswer content={result.answer} />
             </div>
           </div>
         )}

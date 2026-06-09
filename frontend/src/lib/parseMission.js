@@ -1,5 +1,7 @@
 /** Parse ADK /run event stream into a demo-friendly mission result. */
 
+import { formatAgentAnswer, pickBestAnswer } from "./formatAgentAnswer";
+
 const AGENT_LABELS = {
   orchestrator_agent: "Central Memory Guide",
   memory_agent: "Memory Answers",
@@ -13,7 +15,7 @@ function label(id) {
 
 /**
  * @param {Array<object>} events ADK run response
- * @returns {{ trace: Array<{step:number, agent:string, action:string}>, answer: string, toolNames: string[] }}
+ * @returns {{ trace: Array<{step:number, agent:string, action:string}>, answer: string, toolNames: string[], texts: Array<{authorId:string, author:string, text:string}> }}
  */
 export function parseMissionEvents(events) {
   const trace = [];
@@ -45,17 +47,15 @@ export function parseMissionEvents(events) {
         }
       }
       if (part.text && isModel) {
-        texts.push({ author: label(author), text: part.text.trim() });
+        const cleaned = formatAgentAnswer(part.text);
+        if (cleaned) {
+          texts.push({ authorId: author, author: label(author), text: cleaned });
+        }
       }
     }
   }
 
-  // Prefer the last substantive specialist reply (usually memory/pipeline).
-  const substantive = texts.filter((t) => t.text.length > 40);
-  const answer =
-    (substantive.length ? substantive[substantive.length - 1].text : null) ||
-    texts.map((t) => t.text).join("\n\n") ||
-    "";
+  const answer = pickBestAnswer(texts);
 
   return { trace, answer, toolNames, texts };
 }

@@ -188,7 +188,6 @@ export async function runMission(prompt) {
     const parsed = parseMissionEvents(events);
     return {
       ...parsed,
-      texts: parsed.answer ? [parsed.answer] : [],
       toolCalls: parsed.toolNames,
       elapsedMs: Date.now() - started,
       raw: events,

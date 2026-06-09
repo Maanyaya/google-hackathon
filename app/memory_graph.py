@@ -234,6 +234,16 @@ def build_context_pack(
 
     sheet_mirror = _fetch_sheet_mirror_stats()
 
+    context_json: dict[str, Any] | None = None
+    try:
+        from modex_mcp.memory_store import load_latest_compressed_context
+
+        packed = load_latest_compressed_context(repo)
+        if packed.get("status") == "success":
+            context_json = packed.get("context_json")
+    except Exception:  # noqa: BLE001
+        context_json = None
+
     # Cross-reference: link each session decision to GitHub PRs by topic overlap.
     decisions: list[dict[str, Any]] = []
     linked_pr_numbers: set[int] = set()
@@ -345,12 +355,23 @@ def build_context_pack(
         github_synced,
         sheet_mirror.get("last_synced"),
     )
+    if context_json:
+        from modex_mcp.context_compress import render_hydration_from_context
+
+        compressed_md = render_hydration_from_context(context_json)
+        hydration = (
+            compressed_md
+            + "\n\n---\n\n## Cross-repo fusion (GitHub + Fivetran)\n\n"
+            + hydration
+        )
 
     return {
         "status": "success",
         "project_repo": repo,
         "github_repo": full_name,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "context_json": context_json,
+        "transcript_md": context_json.get("transcript_md") if context_json else None,
         "freshness": {
             "session_last_event": signals.get("last_event"),
             "sheet_last_synced": sheet_mirror.get("last_synced"),

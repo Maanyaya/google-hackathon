@@ -17,6 +17,7 @@ from modex_mcp.memory_store import (
     load_session_history,
     load_team_context,
     log_decision,
+    save_compressed_context,
     save_memory,
 )
 
@@ -48,11 +49,13 @@ async def list_tools() -> list[Tool]:
                         "enum": [
                             "session_start",
                             "user_prompt",
+                            "agent_response",
                             "tool_call",
                             "file_edit",
                             "decision",
                             "error",
                             "session_end",
+                            "context_compressed",
                         ],
                     },
                     "summary": {"type": "string"},
@@ -154,6 +157,25 @@ async def list_tools() -> list[Tool]:
             },
         ),
         Tool(
+            name="compress_context",
+            description=(
+                "Compress raw session/repo logs into structured JSON (modex.context.v1) "
+                "and save as context_compressed event. Deterministic dedupe/group — "
+                "NOT LLM summarization. Syncs via Fivetran sheet mirror for other agents."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "developer_id": {"type": "string"},
+                    "agent_tool": {"type": "string"},
+                    "project_repo": {"type": "string"},
+                    "session_id": {"type": "string"},
+                    "event_limit": {"type": "integer", "default": 300},
+                },
+                "required": ["developer_id", "agent_tool", "project_repo"],
+            },
+        ),
+        Tool(
             name="load_team_context",
             description="Alias for load_context_from_logs (backward compatible).",
             inputSchema={
@@ -247,6 +269,14 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             context=args.get("context", ""),
             session_id=args.get("session_id"),
             file_path=args.get("file_path"),
+        )
+    elif name == "compress_context":
+        result = save_compressed_context(
+            developer_id=args["developer_id"],
+            agent_tool=args["agent_tool"],
+            project_repo=args["project_repo"],
+            session_id=args.get("session_id"),
+            event_limit=int(args.get("event_limit", 300)),
         )
     elif name == "load_team_context":
         result = load_team_context(
