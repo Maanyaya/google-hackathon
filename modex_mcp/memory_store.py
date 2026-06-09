@@ -156,7 +156,25 @@ def ensure_codebase_logs_table() -> dict[str, Any]:
     ]
     table = bigquery.Table(CODEBASE_LOGS_FULL_TABLE, schema=schema)
     client.create_table(table, exists_ok=True)
+    _migrate_codebase_logs_schema(client)
     return {"status": "success", "table": CODEBASE_LOGS_FULL_TABLE}
+
+
+def _migrate_codebase_logs_schema(client: bigquery.Client) -> None:
+    """Add columns introduced after initial deploy (idempotent)."""
+    try:
+        table = client.get_table(CODEBASE_LOGS_FULL_TABLE)
+    except Exception:
+        return
+    existing = {f.name for f in table.schema}
+    additions = []
+    if "session_summary" not in existing:
+        additions.append(bigquery.SchemaField("session_summary", "STRING"))
+    if not additions:
+        return
+    new_schema = list(table.schema) + additions
+    table.schema = new_schema
+    client.update_table(table, ["schema"])
 
 
 def ensure_memory_table() -> dict[str, Any]:
@@ -298,12 +316,24 @@ def append_codebase_log(
     client = _bq_client()
     errors = client.insert_rows_json(CODEBASE_LOGS_FULL_TABLE, [row])
     if errors:
-        slim = {k: v for k, v in row.items() if k not in ("context_json", "transcript_md")}
+        # Backward compat: older BQ tables may lack session_summary (added in v2).
+        slim = {
+            k: v
+            for k, v in row.items()
+            if k not in ("context_json", "transcript_md", "session_summary")
+        }
         errors = client.insert_rows_json(CODEBASE_LOGS_FULL_TABLE, [slim])
     if errors:
         return {"status": "error", "message": str(errors)}
 
-    sheet_result = _append_sheet_row(row, CODEBASE_LOG_COLUMNS, LOG_SHEET_RANGE)
+    # Sheet mirror: use slim row if sheet header lacks session_summary column.
+    sheet_row = row
+    sheet_result = _append_sheet_row(sheet_row, CODEBASE_LOG_COLUMNS, LOG_SHEET_RANGE)
+    if sheet_result and sheet_result.get("sheet_error") and row.get("session_summary"):
+        sheet_row = {k: v for k, v in row.items() if k != "session_summary"}
+        sheet_result = _append_sheet_row(
+            sheet_row, [c for c in CODEBASE_LOG_COLUMNS if c != "session_summary"], LOG_SHEET_RANGE
+        )
     return {
         "status": "success",
         "event_id": row["event_id"],
