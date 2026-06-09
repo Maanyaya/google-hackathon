@@ -6,7 +6,8 @@
 
 **Live demo:** https://agentic-data-platform-979112189932.asia-south1.run.app/dashboard/  
 **GitHub:** https://github.com/Maanyaya/google-hackathon  
-**Judge credentials + 5-min test:** [JUDGES.md](JUDGES.md)
+**Judge credentials + 5-min test:** [JUDGES.md](JUDGES.md)  
+**Full configuration reference (both faces):** [CONFIGURATION.md](CONFIGURATION.md)
 
 ---
 

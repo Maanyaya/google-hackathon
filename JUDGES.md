@@ -168,6 +168,7 @@ Face 2 (ADK + Gemini 2.5, Cloud Run)
 | GitHub | https://github.com/Maanyaya/google-hackathon |
 | API health | …/api/v1/health |
 | Architecture README | [README.md](README.md) |
+| Configuration (both faces) | [CONFIGURATION.md](CONFIGURATION.md) |
 
 ---
 
