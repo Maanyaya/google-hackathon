@@ -6,6 +6,7 @@
 
 **Live demo:** https://agentic-data-platform-979112189932.asia-south1.run.app/dashboard/  
 **GitHub:** https://github.com/Maanyaya/google-hackathon  
+**New repo? Set up MCP here (step-by-step):** [docs/NEW_REPO_MCP_SETUP.md](docs/NEW_REPO_MCP_SETUP.md)  
 **Judge credentials + 5-min test:** [JUDGES.md](JUDGES.md)  
 **Full configuration reference (both faces):** [CONFIGURATION.md](CONFIGURATION.md)
 

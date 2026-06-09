@@ -4,6 +4,8 @@ Connect **Cursor**, **Antigravity**, or **Windsurf** to MoDeX shared memory.
 
 > **Judges:** use [JUDGES.md](../JUDGES.md) or the dashboard **Setup** section for ready-made credentials and copy-paste MCP config (`docs/mcp-cursor-judge.json`).
 
+> **New GitHub repo?** Full MCP setup from scratch → **[docs/NEW_REPO_MCP_SETUP.md](../docs/NEW_REPO_MCP_SETUP.md)**
+
 ---
 
 ## Use MoDeX from anywhere (hosted — recommended)

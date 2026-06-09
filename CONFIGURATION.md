@@ -2,6 +2,10 @@
 
 Step-by-step wiring for both faces. Every command is copy-pasteable.
 
+> **Setting up MCP in a brand-new GitHub repo?**  
+> Start here first → **[docs/NEW_REPO_MCP_SETUP.md](docs/NEW_REPO_MCP_SETUP.md)**  
+> (9 numbered steps, checklist, copy-paste templates — no GCP needed.)
+
 ---
 
 ## Quick orientation
