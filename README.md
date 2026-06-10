@@ -272,6 +272,7 @@ agentic-data-platform/
 |---|---|
 | **Dashboard (Face 2, no install)** | https://agentic-data-platform-979112189932.asia-south1.run.app/dashboard/ |
 | **Judge API key (Face 1 MCP)** | `msk-7079ba3cdcf863affee3bbdea41b0485` |
+| **Judge MCP credentials (copy/paste)** | [docs/JUDGE_MCP_CREDENTIALS.md](docs/JUDGE_MCP_CREDENTIALS.md) |
 | **Full setup guide** | [JUDGES.md](JUDGES.md) |
 
 ---

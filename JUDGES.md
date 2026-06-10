@@ -46,7 +46,9 @@ What is the current sync status of the MoDeX logs pipeline?
 |-------|--------|
 | **Service URL** | `https://agentic-data-platform-979112189932.asia-south1.run.app` |
 | **Judge API key** | `msk-7079ba3cdcf863affee3bbdea41b0485` |
+| **Judge 2 API key** | `msk-1681c9a2c379d01e755fd0eb99de35ec` |
 | **Demo repo** | `github.com/demo/api-service` |
+| **Copy/paste MCP config** | [docs/JUDGE_MCP_CREDENTIALS.md](docs/JUDGE_MCP_CREDENTIALS.md) |
 
 Verify key works:
 ```bash
