@@ -1,7 +1,15 @@
 import { MoDeXLogo } from "../../lib/icons";
 import { NAV } from "../../lib/theme";
 
-const STACK = ["Gemini", "Google ADK", "Fivetran MCP", "BigQuery", "Vertex AI RAG", "Cloud Run"];
+const LINKS = {
+  devpost: "https://rapid-agent.devpost.com/",
+  dashboard: "https://agentic-data-platform-979112189932.asia-south1.run.app/dashboard/",
+  github: "https://github.com/Maanyaya/google-hackathon",
+  judges: "https://github.com/Maanyaya/google-hackathon/blob/main/JUDGES.md",
+  demo: "https://youtu.be/_-O5sinN4qY",
+};
+
+const STACK = ["Gemini 2.5 Flash", "Google ADK", "Fivetran MCP", "BigQuery", "Cloud Run", "Secret Manager"];
 
 export function Footer({ overview, onNav }) {
   return (
@@ -17,12 +25,21 @@ export function Footer({ overview, onNav }) {
             </span>
           </div>
           <p className="footer-tagline">
-            Shared reasoning memory for AI coding teams. Capture the <em>why</em>, cross-reference
-            it with GitHub via Fivetran, and serve it to any agent — cited and governed.
+            <strong>Google Cloud Rapid Agent Hackathon</strong> · Fivetran Track submission.
+            Shared memory for AI coding agents — Gemini ADK + Fivetran MCP on Cloud Run.
           </p>
           <div className="footer-stack">
             {STACK.map((s) => <span key={s} className="footer-badge">{s}</span>)}
           </div>
+        </div>
+
+        <div className="footer-links">
+          <h5>Submission</h5>
+          <a href={LINKS.dashboard} target="_blank" rel="noreferrer">Live dashboard</a>
+          <a href={LINKS.demo} target="_blank" rel="noreferrer">Demo video (3 min)</a>
+          <a href={LINKS.github} target="_blank" rel="noreferrer">GitHub repo</a>
+          <a href={LINKS.judges} target="_blank" rel="noreferrer">Judge guide</a>
+          <a href={LINKS.devpost} target="_blank" rel="noreferrer">DevPost</a>
         </div>
 
         <div className="footer-links">
@@ -34,7 +51,7 @@ export function Footer({ overview, onNav }) {
 
         <div className="footer-meta">
           <h5>Deployment</h5>
-          <p className="mono">{overview?.project || "agentic-platform"}</p>
+          <p className="mono">{overview?.project || "agentic-data-platform"}</p>
           <p className="mono">{overview?.region || "asia-south1"}</p>
           {overview?.cloud_run_url && (
             <a className="footer-cta" href={overview.cloud_run_url} target="_blank" rel="noreferrer">
@@ -45,8 +62,8 @@ export function Footer({ overview, onNav }) {
       </div>
 
       <div className="container footer-bottom">
-        <span>Built for the Google Cloud × Fivetran Rapid Agent Hackathon</span>
-        <span className="mono">{overview?.face1_mcp || "modex_mcp · load_context"}</span>
+        <span>Submitted to Google Cloud Rapid Agent Hackathon · Fivetran Track · Apache 2.0</span>
+        <span className="mono">Team MoDeX</span>
       </div>
     </footer>
   );

@@ -128,6 +128,7 @@ export const QUICK_MISSIONS = [
 ];
 
 export const NAV = [
+  { id: "submission", label: "Submission" },
   { id: "architecture", label: "Architecture" },
   { id: "stack", label: "Stack" },
   { id: "ask", label: "Ask Face 2" },

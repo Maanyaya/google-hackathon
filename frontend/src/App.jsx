@@ -5,6 +5,9 @@ import { Hero } from "./components/sections/Hero";
 import { Problem } from "./components/sections/Problem";
 import { Architecture } from "./components/sections/Architecture";
 
+const Submission = lazy(() =>
+  import("./components/sections/Submission").then((m) => ({ default: m.Submission })),
+);
 const AskGuide = lazy(() =>
   import("./components/sections/AskGuide").then((m) => ({ default: m.AskGuide })),
 );
@@ -91,6 +94,11 @@ export default function App() {
     <>
       <Nav onNav={onNav} githubSource={overview?.github_source} onSync={onSync} syncing={syncing} />
       <Hero overview={overview} decisions={decisions} impact={impact} onNav={onNav} />
+
+      <Suspense fallback={<SectionFallback min={360} />}>
+        <Submission />
+      </Suspense>
+
       <Problem />
       <Architecture />
 

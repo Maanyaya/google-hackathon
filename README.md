@@ -1,5 +1,15 @@
 # MoDeX — Memory of Codex
 
+> **Google Cloud Rapid Agent Hackathon · Fivetran Track · [Live submission](SUBMISSION.md)**
+
+| | |
+|---|---|
+| **Live dashboard** | https://agentic-data-platform-979112189932.asia-south1.run.app/dashboard/ |
+| **Demo video** | https://youtu.be/_-O5sinN4qY |
+| **GitHub** | https://github.com/Maanyaya/google-hackathon |
+| **Judge guide** | [JUDGES.md](JUDGES.md) |
+| **Submission overview** | [SUBMISSION.md](SUBMISSION.md) |
+
 > **The problem:** When two AI coding agents work on the same codebase, the second one starts cold. It doesn't know what the first decided, what was tried and rejected, or what the user was actually asking for. Every handoff is a blank slate.
 >
 > **MoDeX solves this:** it gives coding agents a shared, persistent memory — captured automatically, stored in BigQuery, surfaced through a central memory agent, and kept fresh by Fivetran.

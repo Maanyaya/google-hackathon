@@ -922,8 +922,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .footer-badge { font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.7rem; border-radius: 999px; background: var(--d-surface); border: 1px solid var(--d-line-2); color: var(--d-text-2); }
 .footer-links, .footer-meta { display: flex; flex-direction: column; gap: 0.55rem; }
 .footer-links h5, .footer-meta h5 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--d-text-3); margin-bottom: 0.4rem; }
-.footer-links button { text-align: left; font-size: 0.88rem; color: var(--d-text-2); transition: color 0.15s; }
-.footer-links button:hover { color: #fff; }
+.footer-links button, .footer-links a { text-align: left; font-size: 0.88rem; color: var(--d-text-2); transition: color 0.15s; text-decoration: none; }
+.footer-links button:hover, .footer-links a:hover { color: #fff; }
 .footer-meta p { font-size: 0.8rem; color: var(--d-text-2); }
 .footer-cta { display: inline-block; margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--amber); }
 .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 1.5rem; flex-wrap: wrap; gap: 0.6rem; }
@@ -1328,6 +1328,86 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .stack-conn-source { color: var(--cc, var(--l-text-2)); font-weight: 600; }
 .stack-conn-dest { color: var(--l-text-2); }
 .stack-conn-role { font-size: 0.76rem; color: var(--l-text-3); line-height: 1.5; }
+
+/* ============================================================
+   SUBMISSION — DevPost / judge entry card
+   ============================================================ */
+
+.section-submission { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+.sub-banner {
+  background: linear-gradient(135deg, rgba(245,166,35,0.08), rgba(13,219,190,0.06));
+  border: 1px solid var(--l-line-2);
+  border-radius: var(--radius-sm);
+  padding: 1.75rem 1.75rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.sub-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem; }
+.sub-badge {
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; padding: 0.25rem 0.65rem; border-radius: 6px;
+}
+.sub-badge-hackathon { color: var(--l-text-2); background: var(--l-line); }
+.sub-badge-track { color: #0a7a6a; background: rgba(13,219,190,0.15); }
+.sub-badge-live {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  color: var(--amber); background: rgba(245,166,35,0.12);
+}
+.sub-badge-live .dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--amber);
+  animation: pulse-dot 2s ease infinite;
+}
+.sub-title {
+  font-family: var(--display); font-size: 1.45rem; font-weight: 700;
+  color: var(--l-text); margin: 0 0 0.5rem;
+}
+.sub-lead { font-size: 0.92rem; color: var(--l-text-2); line-height: 1.65; max-width: 820px; margin: 0 0 1.25rem; }
+.sub-lead strong { color: var(--l-text); font-weight: 600; }
+
+.sub-links-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.65rem; margin-bottom: 1.1rem;
+}
+.sub-link-card {
+  display: flex; flex-direction: column; gap: 0.15rem;
+  padding: 0.85rem 1rem; border-radius: 10px;
+  background: var(--l-surface); border: 1px solid var(--l-line);
+  text-decoration: none; color: inherit; position: relative;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.sub-link-card:hover {
+  border-color: var(--amber); transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(2,6,20,0.08);
+}
+.sub-link-primary { border-left: 3px solid var(--amber); }
+.sub-link-label { font-weight: 700; font-size: 0.88rem; color: var(--l-text); padding-right: 1.2rem; }
+.sub-link-sub { font-size: 0.74rem; color: var(--l-text-3); line-height: 1.4; }
+.sub-link-arrow { position: absolute; top: 0.85rem; right: 0.75rem; opacity: 0.45; }
+
+.sub-built { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.sub-built-label {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--l-text-3);
+}
+.sub-built-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.sub-built-tag {
+  font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.55rem;
+  border-radius: 6px; background: var(--l-line); color: var(--l-text-2);
+}
+
+.sub-judge-card { padding: 1.35rem 1.5rem; }
+.sub-judge-head { font-size: 1rem; font-weight: 700; margin: 0 0 1rem; color: var(--l-text); }
+.sub-judge-steps { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1rem; }
+.sub-judge-step { display: flex; gap: 0.85rem; align-items: flex-start; }
+.sub-judge-n {
+  flex-shrink: 0; width: 1.6rem; height: 1.6rem; border-radius: 50%;
+  background: rgba(245,166,35,0.15); color: var(--amber);
+  font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.sub-judge-step strong { display: block; font-size: 0.88rem; margin-bottom: 0.15rem; color: var(--l-text); }
+.sub-judge-step p { font-size: 0.82rem; color: var(--l-text-3); margin: 0; line-height: 1.5; }
+.sub-judge-note { font-size: 0.8rem; color: var(--l-text-3); margin: 0; line-height: 1.55; border-top: 1px solid var(--l-line); padding-top: 0.85rem; }
+.sub-judge-note a { color: var(--amber); font-weight: 600; text-decoration: none; }
+.sub-judge-note a:hover { text-decoration: underline; }
 
 /* ============================================================
    Enhanced Agents / Specialist cards
