@@ -37,6 +37,7 @@ export function useDashboardBundle() {
   const [pack, setPack] = useState(null);
   const [pipelines, setPipelines] = useState(null);
   const [freshness, setFreshness] = useState(null);
+  const [fivetranHub, setFivetranHub] = useState(null);
   const [setup, setSetup] = useState(null);
   const [loading, setLoading] = useState(true);
   const [packLoading, setPackLoading] = useState(true);
@@ -44,18 +45,20 @@ export function useDashboardBundle() {
 
   const refreshLight = useCallback(async (silent = false) => {
     try {
-      const [ov, topo, pipe, fresh, setupData] = await Promise.all([
+      const [ov, topo, pipe, fresh, setupData, ftHub] = await Promise.all([
         apiFetch("/api/dashboard/overview"),
         apiFetch("/api/dashboard/topology"),
         apiFetch("/api/dashboard/pipelines"),
         apiFetch("/api/dashboard/freshness"),
         apiFetch("/api/dashboard/setup"),
+        apiFetch("/api/dashboard/fivetran-hub"),
       ]);
       setOverview(ov);
       setTopology(topo);
       setPipelines(pipe);
       setFreshness(fresh);
       setSetup(setupData);
+      setFivetranHub(ftHub);
       if (!silent) setLoading(false);
     } catch (e) {
       if (!silent) setError(e.message);
@@ -131,6 +134,7 @@ export function useDashboardBundle() {
     impact,
     pipelines,
     freshness,
+    fivetranHub,
     setup,
     loading,
     packLoading,

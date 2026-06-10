@@ -32,7 +32,7 @@ const JUDGE_STEPS = [
   {
     n: "2",
     title: "Test Face 1 MCP (5 min)",
-    desc: "Copy judge keys from JUDGES.md → paste into ~/.cursor/mcp.json → restart Cursor.",
+    desc: "Copy judge keys from JUDGES.md → paste into ~/.gemini/antigravity/mcp_config.json → restart Antigravity.",
   },
   {
     n: "3",

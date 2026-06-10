@@ -23,6 +23,37 @@ CLOUD_RUN_URL = (
     "https://agentic-data-platform-979112189932.asia-south1.run.app"
 )
 
+# Canonical Fivetran connector catalog (always returned — merged with live MCP status).
+FIVETRAN_CONNECTOR_CATALOG = [
+    {
+        "id": config.FIVETRAN_MODEX_LOGS_CONNECTION_ID,
+        "name": "MoDeX Logs",
+        "service": "google_sheets",
+        "source": "Google Sheets · MoDex_Logs tab",
+        "destination": f"BigQuery · {config.MODEX_FIVETRAN_BQ_DATASET}.{config.MODEX_FIVETRAN_BQ_TABLE}",
+        "role": "Session memory warehouse — every IDE log row synced for Face 2 queries",
+        "featured": True,
+    },
+    {
+        "id": "solve_unhurt",
+        "name": "GitHub PRs",
+        "service": "github",
+        "source": "GitHub · pull requests + reviews",
+        "destination": f"BigQuery · {config.GITHUB_DATASET}.*",
+        "role": "Ground decisions in code review history — cross-reference with session memory",
+        "featured": False,
+    },
+    {
+        "id": "elemental_apparel",
+        "name": "Platform Connector",
+        "service": "fivetran_platform",
+        "source": "Fivetran Platform Connector",
+        "destination": f"BigQuery · {config.BQ_METADATA_DATASET}.*",
+        "role": "Pipeline lineage, sync events, schema drift — data trust layer",
+        "featured": True,
+    },
+]
+
 
 class QueryRequest(BaseModel):
     sql: str
@@ -170,7 +201,7 @@ async def get_judge_setup() -> dict[str, Any]:
     raw_client = (
         f"{config.GITHUB_REPO_URL.rstrip('/')}/main/modex_mcp/remote_client.py"
     )
-    cursor_mcp = {
+    antigravity_mcp = {
         "mcpServers": {
             "modex-memory": {
                 "command": "python",
@@ -178,7 +209,8 @@ async def get_judge_setup() -> dict[str, Any]:
                 "env": {
                     "MODEX_API_URL": base,
                     "MODEX_API_KEY": judge_key or "SEE-JUDGES-MD",
-                    "MODEX_AGENT_TOOL": "cursor",
+                    "MODEX_AGENT_TOOL": "antigravity",
+                    "MODEX_DEVELOPER_ID": "judge",
                 },
             }
         }
@@ -188,7 +220,7 @@ async def get_judge_setup() -> dict[str, Any]:
         "architecture": {
             "face1": {
                 "name": "Developer Edge (MCP)",
-                "role": "Capture reasoning in Cursor / Antigravity / Windsurf",
+                "role": "Capture reasoning in Google Antigravity (MCP + optional hooks)",
                 "tools": ["load_context", "append_codebase_log", "log_decision"],
             },
             "bus": {
@@ -220,12 +252,13 @@ async def get_judge_setup() -> dict[str, Any]:
                 f'curl -H "Authorization: Bearer {judge_key or "YOUR-KEY"}" '
                 f"{base}/api/v1/whoami"
             ),
-            "cursor_config": cursor_mcp,
+            "antigravity_config": antigravity_mcp,
             "install_steps": [
                 "pip install mcp",
                 f"curl -o remote_client.py {raw_client}",
-                "Paste cursor_config into ~/.cursor/mcp.json (fix path to remote_client.py)",
-                "Restart Cursor → MCP panel → modex-memory connected",
+                "Paste antigravity_config into ~/.gemini/antigravity/mcp_config.json",
+                "Add .agents/modex.json in your repo (see .agents/modex.json.example)",
+                "Restart Antigravity → MCP → modex-memory connected",
                 'Ask agent: load_context for github.com/demo/api-service',
             ],
         },
@@ -260,33 +293,142 @@ def _dashboard_video_urls(base: str) -> dict[str, str]:
     }
 
 
+async def _fetch_pipelines_payload() -> dict[str, Any]:
+    """List connections via Fivetran MCP; merge with static catalog."""
+    live_by_id: dict[str, dict[str, Any]] = {}
+    mcp_error: str | None = None
+
+    if not config.FIVETRAN_API_KEY or not config.FIVETRAN_API_SECRET:
+        mcp_error = "Fivetran credentials not configured on Cloud Run."
+    else:
+        try:
+            result = await call_fivetran_tool(
+                "list_connections",
+                {"group_id": config.FIVETRAN_BQ_GROUP_ID},
+            )
+            if result.get("status") == "error":
+                mcp_error = result.get("message")
+            else:
+                raw = result.get("data", {})
+                if isinstance(raw, dict):
+                    for conn in raw.get("data", {}).get("items", []):
+                        cid = conn.get("id")
+                        if cid:
+                            live_by_id[cid] = conn
+        except Exception as exc:  # noqa: BLE001
+            mcp_error = str(exc)
+
+    pipelines: list[dict[str, Any]] = []
+    for cat in FIVETRAN_CONNECTOR_CATALOG:
+        live = live_by_id.get(cat["id"], {})
+        status_obj = live.get("status") or {}
+        pipelines.append({
+            **cat,
+            "status": status_obj.get("sync_state", "catalog"),
+            "paused": live.get("paused", False),
+            "succeeded_at": live.get("succeeded_at"),
+            "failed_at": live.get("failed_at"),
+            "sync_frequency": live.get("sync_frequency"),
+            "live": bool(live),
+        })
+
+    catalog_ids = {c["id"] for c in FIVETRAN_CONNECTOR_CATALOG}
+    for cid, conn in live_by_id.items():
+        if cid in catalog_ids:
+            continue
+        status_obj = conn.get("status") or {}
+        pipelines.append({
+            "id": cid,
+            "name": conn.get("schema") or cid,
+            "service": conn.get("service"),
+            "source": "Fivetran connector",
+            "destination": "BigQuery",
+            "role": "Additional connector in group",
+            "featured": False,
+            "status": status_obj.get("sync_state", "unknown"),
+            "paused": conn.get("paused", False),
+            "succeeded_at": conn.get("succeeded_at"),
+            "failed_at": conn.get("failed_at"),
+            "sync_frequency": conn.get("sync_frequency"),
+            "live": True,
+        })
+
+    return {
+        "status": "success" if not mcp_error else "partial",
+        "error": mcp_error,
+        "mcp_configured": bool(config.FIVETRAN_API_KEY and config.FIVETRAN_API_SECRET),
+        "group_id": config.FIVETRAN_BQ_GROUP_ID,
+        "pipelines": pipelines,
+    }
+
+
 @router.get("/pipelines")
 async def get_pipelines() -> dict[str, Any]:
-    try:
-        result = await call_fivetran_tool(
-            "list_connections",
-            {"group_id": config.FIVETRAN_BQ_GROUP_ID},
-        )
-        if result.get("status") == "error":
-            return {"status": "error", "error": result.get("message"), "pipelines": []}
+    return await _fetch_pipelines_payload()
 
-        raw = result.get("data", {})
-        items = []
-        if isinstance(raw, dict):
-            for conn in raw.get("data", {}).get("items", []):
-                items.append({
-                    "id": conn.get("id"),
-                    "name": conn.get("schema"),
-                    "service": conn.get("service"),
-                    "status": conn.get("status", {}).get("sync_state", "unknown"),
-                    "paused": conn.get("paused", False),
-                    "succeeded_at": conn.get("succeeded_at"),
-                    "failed_at": conn.get("failed_at"),
-                    "sync_frequency": conn.get("sync_frequency"),
-                })
-        return {"status": "success", "pipelines": items}
+
+@router.get("/fivetran-hub")
+async def get_fivetran_hub() -> dict[str, Any]:
+    """Fivetran-centric bundle: connectors, freshness, lineage, sync timeline."""
+    pipelines_payload = await _fetch_pipelines_payload()
+
+    freshness: dict[str, Any] = {}
+    try:
+        freshness = await get_data_freshness()
     except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "error": str(exc), "pipelines": []}
+        freshness = {"status": "error", "error": str(exc)}
+
+    lineage_rows: list[dict[str, Any]] = []
+    try:
+        lineage_rows = _run_bq(f"""
+            SELECT
+                st.name AS source_table,
+                dt.name AS destination_table,
+                tl.created_at
+            FROM `{config.BQ_METADATA_PREFIX}.table_lineage` tl
+            LEFT JOIN `{config.BQ_METADATA_PREFIX}.source_table` st
+                ON tl.source_table_id = st.id
+            LEFT JOIN `{config.BQ_METADATA_PREFIX}.destination_table` dt
+                ON tl.destination_table_id = dt.id
+            ORDER BY tl.created_at DESC
+            LIMIT 12
+        """)
+    except Exception:  # noqa: BLE001
+        lineage_rows = []
+
+    timeline_rows: list[dict[str, Any]] = []
+    try:
+        timeline_rows = _run_bq(
+            f"SELECT time_stamp, connection_id, event, message_event "
+            f"FROM `{config.BQ_METADATA_PREFIX}.log` "
+            f"ORDER BY time_stamp DESC LIMIT 12"
+        )
+    except Exception:  # noqa: BLE001
+        timeline_rows = []
+
+    return {
+        "status": "success",
+        "track": "Fivetran",
+        "partner_mcp": "fivetran-mcp",
+        "mcp_configured": pipelines_payload.get("mcp_configured"),
+        "mcp_error": pipelines_payload.get("error"),
+        "group_id": config.FIVETRAN_BQ_GROUP_ID,
+        "connectors": pipelines_payload.get("pipelines", []),
+        "freshness": freshness,
+        "lineage": lineage_rows,
+        "sync_timeline": timeline_rows,
+        "destinations": {
+            "modex_logs_table": config.MODEX_FIVETRAN_FULL_TABLE,
+            "codebase_logs_table": config.MODEX_CODEBASE_LOGS_FULL_TABLE,
+            "metadata_dataset": config.BQ_METADATA_PREFIX,
+            "github_dataset": config.GITHUB_PREFIX,
+        },
+        "sheet_url": (
+            f"https://docs.google.com/spreadsheets/d/{config.MODEX_MEMORY_SHEET_ID}"
+            if config.MODEX_MEMORY_SHEET_ID
+            else "https://docs.google.com/spreadsheets/d/1NKxRyKBBgBzETtaaPO_gPC8vdM1i4vtt5yxrq6iCRck"
+        ),
+    }
 
 
 @router.post("/sync")

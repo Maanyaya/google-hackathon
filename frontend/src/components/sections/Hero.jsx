@@ -96,7 +96,7 @@ function ContextPackPreview({ sample, fresh, counts }) {
         </div>
 
         <div className="cpp-foot">
-          <SourceFloat label="Cursor session" tone="sky" />
+          <SourceFloat label="Antigravity session" tone="sky" />
           <span className="cpp-link" />
           <SourceFloat label="GitHub PR" tone="violet" />
           <span className="cpp-link" />

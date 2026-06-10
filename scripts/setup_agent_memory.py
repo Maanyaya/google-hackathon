@@ -13,8 +13,8 @@ DEMO_DEV = "gagan@demo.dev"
 DEMO_SESSION = str(uuid.uuid4())
 
 
-def seed_cursor_session() -> list[dict]:
-    """Simulate a full Cursor session as append-only events."""
+def seed_antigravity_session() -> list[dict]:
+    """Simulate a full Antigravity session as append-only events."""
     sid = DEMO_SESSION
     events = [
         ("session_start", "Opened api-service on branch feature/jwt-auth", {}),
@@ -60,7 +60,7 @@ def seed_cursor_session() -> list[dict]:
         fp = payload.get("file") if isinstance(payload, dict) else None
         r = append_codebase_log(
             developer_id=DEMO_DEV,
-            agent_tool="cursor",
+            agent_tool="antigravity",
             project_repo=DEMO_REPO,
             event_type=event_type,
             summary=summary,
@@ -78,13 +78,13 @@ def main() -> int:
     print("Creating MoDeX memory tables...")
     print(json.dumps(ensure_all_tables(), indent=2))
 
-    print("\nSeeding Cursor session log timeline...")
-    seed_cursor_session()
+    print("\nSeeding Antigravity session log timeline...")
+    seed_antigravity_session()
 
     print("\nSeeding session_end + Antigravity handoff continuation...")
     save_result = save_memory(
         developer_id=DEMO_DEV,
-        agent_tool="cursor",
+        agent_tool="antigravity",
         project_repo=DEMO_REPO,
         summary="JWT auth in progress. PostgreSQL chosen. Fix clock skew in test_auth.",
         decisions=["PostgreSQL over MongoDB", "JWT over session cookies"],
@@ -99,8 +99,8 @@ def main() -> int:
         agent_tool="antigravity",
         project_repo=DEMO_REPO,
         event_type="session_start",
-        summary="New Antigravity session — loading team context from Cursor handoff",
-        payload={"prior_session": DEMO_SESSION, "prior_tool": "cursor"},
+        summary="New Antigravity session — loading team context from prior handoff",
+        payload={"prior_session": DEMO_SESSION, "prior_tool": "antigravity"},
     )
     print(json.dumps(handoff, indent=2, default=str))
     return 0

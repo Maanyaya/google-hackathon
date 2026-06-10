@@ -24,7 +24,7 @@
 
 ## The core idea
 
-MoDeX is an **MCP superpower for coding agents**. Any agent — Cursor, Antigravity, Windsurf — gets two new abilities:
+MoDeX is an **MCP superpower for Google Antigravity coding agents**. Antigravity gets two new abilities:
 
 1. **Remember everything** — every decision, every user message, every file edited, every approach rejected is captured automatically as the agent works, without the developer doing anything.
 2. **Resume from any agent** — when a different agent (or the same agent on a different machine) starts, it receives a full context briefing: what was decided, what failed, what is in flight, and what the user last asked.
@@ -41,11 +41,10 @@ The memory lives in **Google BigQuery** (the ground truth) and is mirrored to a 
 │                                                                      │
 │  What it does: automatically captures every IDE event into memory    │
 │                                                                      │
-│  Cursor  ──► beforeSubmitPrompt hook  ──► user_prompt event          │
-│          ──► afterAgentResponse hook  ──► agent_response event       │
-│          ──► afterFileEdit hook       ──► file_edit event            │
-│          ──► postToolUse hook         ──► tool_call event            │
-│          ──► stop hook                ──► context_compressed handoff │
+│  Antigravity  ──► PreInvocation hook     ──► user_prompt event       │
+│              ──► PostInvocation hook     ──► agent_response event    │
+│              ──► PostToolUse hook        ──► file_edit / tool_call   │
+│              ──► Stop hook               ──► context_compressed      │
 │                                                                      │
 │  MCP tools (manual):                                                 │
 │    load_context()           ← Agent B reads prior session            │
@@ -92,7 +91,7 @@ The memory lives in **Google BigQuery** (the ground truth) and is mirrored to a 
 ### The capture pipeline (step by step)
 
 ```
-Developer types a message in Cursor
+Developer types a message in Antigravity
          │
          ▼  beforeSubmitPrompt hook fires
          │  → hook_runner.py reads the JSON payload (UTF-16LE decoded on Windows)
@@ -140,7 +139,7 @@ is the `context_compressed` row that is written when a session ends or when
 |--------|----------------------------------------|
 | `event_type` | `context_compressed` |
 | `summary` | `modex.context.v2 · 12 turns · 3 decisions · 4 files · 18 events` |
-| `session_summary` | `In this session, gagantak00@gmail.com worked on github.com/Maanyaya/google-hackathon using cursor. 3 engineering decisions were made: invoke hooks via python.exe, use conversation_id as session key, decode UTF-16LE stdin. 4 files were modified: hook_runner.py (6 edits), hooks.json (2 edits)...` |
+| `session_summary` | `In this session, gagantak00@gmail.com worked on github.com/Maanyaya/google-hackathon using antigravity. 3 engineering decisions were made: invoke hooks via python.exe, use conversation_id as session key, decode UTF-16LE stdin. 4 files were modified: hook_runner.py (6 edits), hooks.json (2 edits)...` |
 | `context_json` | Full JSON: transcript[], decisions[], files[], errors[] |
 | `transcript_md` | Briefing + full turn-by-turn markdown — paste this into any agent |
 
@@ -220,7 +219,7 @@ within a conversation with a coding agent.
 This is the story MoDeX tells:
 
 ```
-AGENT A (Cursor, Gagan, Windows):
+AGENT A (Antigravity, Gagan, Windows):
   Works on the codebase. Every prompt, response, decision, file edit
   is captured automatically by hooks → BigQuery + Google Sheet.
   When done: hooks fire `stop` → context_compressed row written.
@@ -259,8 +258,9 @@ agentic-data-platform/
 │   ├── memory_store.py       # BQ + Sheet write/read
 │   ├── remote_client.py      # Thin MCP client (URL + key only)
 │   └── server.py             # Local MCP server (needs GCP)
-├── .cursor/
-│   ├── hooks.json            # Cursor hook definitions (direct python.exe)
+├── .agents/
+│   ├── hooks.json.example    # Antigravity hook definitions (direct python.exe)
+│   └── modex.json.example    # project_repo + agent_tool
 │   └── modex.json            # Project config (repo, agent_tool)
 ├── .agents/
 │   ├── hooks.json            # Antigravity hook definitions
@@ -329,14 +329,16 @@ FIVETRAN_API_SECRET=...
 event_id, session_id, developer_id, agent_tool, project_repo, event_type, file_path, commit_sha, summary, payload_json, parent_event_id, created_at, context_json, transcript_md, session_summary
 ```
 
-### Enable Cursor hooks
+### Enable Antigravity hooks (optional)
 
-1. Open workspace root in Cursor (the folder with `.cursor/`)
-2. Edit `.cursor/modex.json` → set `project_repo` to your repo
-3. Restart Cursor → Settings → Hooks → confirm `modex_*` entries appear
-4. Send a message → check `.agents/modex-hook-debug.log` for `"parsed": true`
+1. Open workspace root in Antigravity
+2. Copy `.agents/modex.json.example` → `.agents/modex.json` and set `project_repo`
+3. Copy `.agents/hooks.json.example` → `.agents/hooks.json` and wire hook scripts
+4. Restart Antigravity → send a message → check `.agents/modex-hook-debug.log` for `"parsed": true`
 
-> **Windows:** hooks must call `python.exe` directly. Never route through `.cmd`/`.bat` — this drops stdin. Cursor pipes UTF-16LE; the runner decodes automatically.
+> **Windows:** hooks must call `python.exe` directly. Never route through `.cmd`/`.bat` — this drops stdin. Some Windows IDEs pipe UTF-16LE; the runner decodes automatically.
+
+**Section 7B:** [docs/HACKATHON_COMPLIANCE.md](docs/HACKATHON_COMPLIANCE.md)
 
 ### Verify end to end
 

@@ -196,6 +196,14 @@ Thumbs.db
 # Service account keys (never commit)
 gen-lang-client-*.json
 
+# Competitor IDE configs (Section 7B — use Antigravity + .agents/ only)
+.cursor/
+**/.cursor/
+docs/mcp-cursor-judge.json
+docs/new-repo-mcp-cursor.json
+modex-hook-debug.log
+**/*-hook-debug.log
+
 # Agent CLI specific
 .persist_vector_store
 tests/load_test/.results/*.html

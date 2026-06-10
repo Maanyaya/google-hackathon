@@ -1,0 +1,27 @@
+{
+  "PreInvocation": [
+    {
+      "type": "command",
+      "command": "cmd.exe /c .agents\\hooks\\modex_pre_invocation.cmd"
+    }
+  ],
+  "PostToolUse": [
+    {
+      "type": "command",
+      "command": "cmd.exe /c .agents\\hooks\\modex_post_tool.cmd",
+      "matcher": "edit_file|run_command|view_file|grep_search|list_dir|replace_file_content|multi_replace_file_content|write_to_file"
+    }
+  ],
+  "PostInvocation": [
+    {
+      "type": "command",
+      "command": "cmd.exe /c .agents\\hooks\\modex_post_invocation.cmd"
+    }
+  ],
+  "Stop": [
+    {
+      "type": "command",
+      "command": "cmd.exe /c .agents\\hooks\\modex_stop.cmd"
+    }
+  ]
+}

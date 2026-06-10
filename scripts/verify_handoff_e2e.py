@@ -1,6 +1,6 @@
 """End-to-end proof: Agent A conversation -> Sheet/BQ -> Agent B hydration.
 
-In-process (fast). Simulates a real Cursor conversation by writing genuine
+In-process (fast). Simulates a real Antigravity conversation by writing genuine
 event rows, then runs the deterministic handoff and shows the exact system
 context a second agent would receive.
 """
@@ -32,7 +32,7 @@ def log(event_type, summary, **extra):
     payload = extra.pop("payload", {})
     append_codebase_log(
         developer_id=DEV,
-        agent_tool="cursor",
+        agent_tool="antigravity",
         project_repo=REPO,
         event_type=event_type,
         summary=summary,
@@ -43,14 +43,14 @@ def log(event_type, summary, **extra):
 
 
 def main() -> int:
-    print(f"=== AGENT A: simulating a real Cursor session {SID} ===")
-    log("session_start", "Cursor session started (agent)")
+    print(f"=== AGENT A: simulating a real Antigravity session {SID} ===")
+    log("session_start", "Antigravity session started (agent)")
     log("user_prompt", "The MoDeX logging isn't capturing context. Make the pipeline rigid.",
         payload={"full_text": "The MoDeX logging isn't capturing context. Make the pipeline rigid so a second agent gets the same context."})
     log("decision", "Invoke hooks via python.exe directly instead of .cmd wrappers (Windows drops stdin through cmd chains)")
-    log("decision", "Use Cursor conversation_id as the MoDeX session_id so events group per chat")
+    log("decision", "Use conversation_id as the MoDeX session_id so events group per chat")
     log("file_edit", "Edited hook_runner.py (1 change(s))", file_path="modex_mcp/hook_runner.py", payload={"edit_count": 1})
-    log("file_edit", "Edited hooks.json (1 change(s))", file_path=".cursor/hooks.json", payload={"edit_count": 1})
+    log("file_edit", "Edited hooks.json (1 change(s))", file_path=".agents/hooks.json", payload={"edit_count": 1})
     log("tool_call", "Shell: python -m pytest tests/unit", payload={"tool_name": "Shell", "tool_input": {"command": "python -m pytest tests/unit"}})
     log("agent_response", "Rewrote hook_runner + pointed hooks.json at python.exe; verified sheet write to A361:N361.",
         payload={"full_text": "Rewrote hook_runner.py and pointed hooks.json directly at python.exe. Verified the Google Sheet mirror works (row A361:N361). Added a system-context briefing for the next agent."})
@@ -64,7 +64,7 @@ def main() -> int:
     time.sleep(6)
 
     print("\n=== HANDOFF: compressing + storing to BigQuery + Google Sheet ===")
-    res = save_compressed_context(developer_id=DEV, agent_tool="cursor", project_repo=REPO, session_id=SID)
+    res = save_compressed_context(developer_id=DEV, agent_tool="antigravity", project_repo=REPO, session_id=SID)
     print("status:", res.get("status"))
     print("summary:", res.get("summary"))
     mirror = res.get("fivetran_mirror") or {}

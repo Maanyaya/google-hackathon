@@ -3,9 +3,9 @@ import { Section, SectionHead } from "../ui/Section";
 import { Reveal } from "../ui/Reveal";
 
 const FALLBACK = [
-  { decision: "PostgreSQL over MongoDB for relational integrity", session: { tool: "cursor", who: "alex" }, pr: { number: 142, who: "priya", review: "priya (APPROVED): relational guarantees win here" } },
+  { decision: "PostgreSQL over MongoDB for relational integrity", session: { tool: "antigravity", who: "alex" }, pr: { number: 142, who: "priya", review: "priya (APPROVED): relational guarantees win here" } },
   { decision: "JWT (stateless) — drop server-side sessions", session: { tool: "antigravity", who: "sam" }, pr: { number: 137, who: "lee", review: "lee (APPROVED): scales horizontally" } },
-  { decision: "Idempotent webhook handlers with dedupe keys", session: { tool: "windsurf", who: "mia" }, pr: { number: 151, who: "alex", review: "alex (APPROVED): prevents double-processing" } },
+  { decision: "Idempotent webhook handlers with dedupe keys", session: { tool: "antigravity", who: "mia" }, pr: { number: 151, who: "alex", review: "alex (APPROVED): prevents double-processing" } },
 ];
 
 function buildLanes(decisions) {

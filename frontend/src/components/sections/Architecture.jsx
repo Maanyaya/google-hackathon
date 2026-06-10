@@ -22,7 +22,7 @@ function FaceIcon({ kind }) {
 }
 
 const STEPS = [
-  { n: 1, text: "Face 1 MCP (proved): coding agents capture decisions + rejected paths as they work in Cursor / Antigravity." },
+  { n: 1, text: "Face 1 MCP (proved): coding agents capture decisions + rejected paths as they work in Google Antigravity." },
   { n: 2, text: "Fivetran-managed connectors sync sessions, GitHub PRs, and sheets into BigQuery — the centralized memory bus." },
   { n: 3, text: "Face 2 answers from that bus: what/why/rejected with citations — and operates the Fivetran pipelines that keep it fresh." },
   { n: 4, text: "The next agent calls load_context and starts warm. The loop closes." },
@@ -47,7 +47,7 @@ export function Architecture() {
           <h3 className="arch-face-name">Developer Edge</h3>
           <p className="arch-face-sub">An MCP server inside your coding agent</p>
           <ul className="arch-face-list">
-            <li>Runs in <strong>Cursor · Antigravity · Windsurf</strong></li>
+            <li>Runs in <strong>Google Antigravity</strong></li>
             <li>Captures decisions <em>and</em> rejected approaches as you code</li>
             <li>Governed — your team's context never leaks to outsiders</li>
           </ul>

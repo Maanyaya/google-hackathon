@@ -1,6 +1,6 @@
 # MoDeX — Judge MCP credentials (public)
 
-Use these keys to test **Face 1 MCP** in Cursor. No GCP setup required.
+Use these keys to test **Face 1 MCP** in **Google Antigravity** (Section 7B–compliant dev workflow). No GCP setup required.
 
 ## Why two keys?
 
@@ -32,10 +32,10 @@ curl -H "Authorization: Bearer msk-1681c9a2c379d01e755fd0eb99de35ec" \
 # → {"status":"ok","developer_id":"judge2"}
 ```
 
-## Agent A — Cursor `~/.cursor/mcp.json` (judge)
+## Agent A — Antigravity MCP config (judge)
 
-**Windows:** `C:\Users\YOUR_USER\.cursor\mcp.json`  
-**Mac:** `/Users/YOUR_USER/.cursor/mcp.json`
+**Windows:** `C:\Users\YOUR_USER\.gemini\antigravity\mcp_config.json`  
+**Mac:** `/Users/YOUR_USER/.gemini/antigravity/mcp_config.json`
 
 ```json
 {
@@ -46,7 +46,7 @@ curl -H "Authorization: Bearer msk-1681c9a2c379d01e755fd0eb99de35ec" \
       "env": {
         "MODEX_API_URL": "https://agentic-data-platform-979112189932.asia-south1.run.app",
         "MODEX_API_KEY": "msk-7079ba3cdcf863affee3bbdea41b0485",
-        "MODEX_AGENT_TOOL": "cursor",
+        "MODEX_AGENT_TOOL": "antigravity",
         "MODEX_DEVELOPER_ID": "judge"
       }
     }
@@ -56,7 +56,7 @@ curl -H "Authorization: Bearer msk-1681c9a2c379d01e755fd0eb99de35ec" \
 
 On Mac use `python3` and `/Users/YOUR_USER/remote_client.py`.
 
-## Agent B — second Cursor window / second machine (judge2)
+## Agent B — second Antigravity profile / second machine (judge2)
 
 Use the **other** key so logs are stamped as a different developer:
 
@@ -69,7 +69,7 @@ Use the **other** key so logs are stamped as a different developer:
       "env": {
         "MODEX_API_URL": "https://agentic-data-platform-979112189932.asia-south1.run.app",
         "MODEX_API_KEY": "msk-1681c9a2c379d01e755fd0eb99de35ec",
-        "MODEX_AGENT_TOOL": "cursor",
+        "MODEX_AGENT_TOOL": "antigravity",
         "MODEX_DEVELOPER_ID": "judge2"
       }
     }
@@ -98,15 +98,27 @@ curl -o ~/remote_client.py \
   https://raw.githubusercontent.com/Maanyaya/google-hackathon/main/modex_mcp/remote_client.py
 ```
 
-Restart Cursor → **Settings → MCP** → `modex-memory` should show **Connected**.
+Restart Antigravity → **MCP** → `modex-memory` should show **Connected**.
+
+Add in your repo (commit once):
+
+```json
+{
+  "project_repo": "github.com/demo/api-service",
+  "agent_tool": "antigravity"
+}
+```
+
+Save as `.agents/modex.json` (see `.agents/modex.json.example`).
 
 ## Ready-made config files
 
 | File | Purpose |
 |------|---------|
-| [mcp-cursor-judge.json](./mcp-cursor-judge.json) | Cursor MCP snippet |
-| [mcp-antigravity-judge.json](./mcp-antigravity-judge.json) | Antigravity MCP snippet |
+| [mcp-antigravity-judge.json](./mcp-antigravity-judge.json) | Antigravity MCP snippet (Agent A) |
+| [ANTIGRAVITY_MCP_SETUP.md](./ANTIGRAVITY_MCP_SETUP.md) | Full Antigravity setup guide |
 | [NEW_REPO_MCP_SETUP.md](./NEW_REPO_MCP_SETUP.md) | Full setup for your own repo |
+| [HACKATHON_COMPLIANCE.md](./HACKATHON_COMPLIANCE.md) | Section 7B compliance statement |
 
 ## More
 

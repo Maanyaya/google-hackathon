@@ -1,7 +1,7 @@
 """MoDeX remote MCP client — Face 1 with zero local credentials.
 
 This is the install-anywhere half of MoDeX. It is a normal stdio MCP server that
-Cursor / Antigravity / Windsurf launch like any other, but instead of touching
+Google Antigravity launches like any other MCP tool, but instead of touching
 BigQuery it forwards every tool call to the hosted MoDeX API on Cloud Run. The
 server holds the GCP credentials; this client only needs two env vars:
 
@@ -9,7 +9,7 @@ server holds the GCP credentials; this client only needs two env vars:
     MODEX_API_KEY   your personal key (the server maps it to your developer_id)
 
 Optional:
-    MODEX_AGENT_TOOL    label for the IDE (default: "cursor")
+    MODEX_AGENT_TOOL    label for the IDE (default: "antigravity")
     MODEX_DEVELOPER_ID  hint only; the server stamps the real id from the key
 
 Dependencies: only the `mcp` package + the Python standard library. A teammate
@@ -33,7 +33,7 @@ from mcp.types import TextContent, Tool
 
 API_URL = os.getenv("MODEX_API_URL", "").rstrip("/")
 API_KEY = os.getenv("MODEX_API_KEY", "")
-AGENT_TOOL = os.getenv("MODEX_AGENT_TOOL", "cursor")
+AGENT_TOOL = os.getenv("MODEX_AGENT_TOOL", "antigravity")
 
 server = Server("modex-memory")
 

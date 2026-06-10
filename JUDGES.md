@@ -1,5 +1,7 @@
 # MoDeX — Judge & evaluator guide
 
+**Compliance:** This project uses **Gemini + ADK + Fivetran MCP** only. Face 1 is tested via **Google Antigravity** (Section 7B). See [docs/HACKATHON_COMPLIANCE.md](docs/HACKATHON_COMPLIANCE.md).
+
 **What MoDeX is:** An MCP superpower that gives AI coding agents a shared, persistent memory — so when a second agent picks up a codebase, it starts exactly where the first one left off, not from a blank slate.
 
 **The two faces you are evaluating:**
@@ -59,7 +61,7 @@ Hydrate me on github.com/Maanyaya/google-hackathon
 
 ### Mission 2 — Why was this chosen?
 ```
-Why was python.exe chosen over a .cmd wrapper for the Cursor hooks?
+Why was python.exe chosen over a .cmd wrapper for the Antigravity hooks?
 ```
 **What you'll see:** Face 2 cites a specific `decision` event from a prior coding session, cross-referenced with any relevant GitHub PR reviews synced by Fivetran (`solve_unhurt` connector → `github.pull_request_review` table).
 
@@ -111,7 +113,7 @@ curl -o remote_client.py \
   https://raw.githubusercontent.com/Maanyaya/google-hackathon/main/modex_mcp/remote_client.py
 ```
 
-**Cursor** — paste into `~/.cursor/mcp.json` (Windows: `%USERPROFILE%\.cursor\mcp.json`):
+**Google Antigravity** — paste into `~/.gemini/antigravity/mcp_config.json`:
 
 ```json
 {
@@ -122,6 +124,7 @@ curl -o remote_client.py \
       "env": {
         "MODEX_API_URL": "https://agentic-data-platform-979112189932.asia-south1.run.app",
         "MODEX_API_KEY": "msk-7079ba3cdcf863affee3bbdea41b0485",
+        "MODEX_AGENT_TOOL": "antigravity",
         "MODEX_DEVELOPER_ID": "judge"
       }
     }
@@ -129,7 +132,7 @@ curl -o remote_client.py \
 }
 ```
 
-Restart Cursor → Settings → MCP → `modex-memory` should show: `load_context`, `append_codebase_log`, `log_decision`, `compress_context`.
+Restart Antigravity → MCP → `modex-memory` should show: `load_context`, `append_codebase_log`, `log_decision`, `compress_context`.
 
 ### Test prompts (ask your coding agent)
 
@@ -147,12 +150,12 @@ Refresh the dashboard **Context pack** — your event appears within seconds.
 ## The handoff story (what to look for on the dashboard)
 
 ```
-AGENT A works on the codebase (Cursor, Windows)
+AGENT A works on the codebase (Antigravity, Windows)
   → every prompt + response + file edit captured automatically
   → session ends → context_compressed row written to BigQuery + Google Sheet
   → Sheet column "session_summary":
       "In this session, gagantak00@gmail.com worked on github.com/Maanyaya/
-       google-hackathon using cursor (47 events). 3 decisions made: invoke
+       google-hackathon using antigravity (47 events). 3 decisions made: invoke
        hooks via python.exe; decode UTF-16LE stdin; use conversation_id as
        session key. 4 files modified: hook_runner.py (6 edits)... Last user
        request: 'add setup instructions to readme'."
@@ -187,7 +190,7 @@ Face 2 calls the Fivetran MCP server directly — it can trigger syncs, report h
 ## Architecture in one diagram
 
 ```
-Developer types in Cursor
+Developer types in Antigravity
         │
         ▼  hook_runner.py (UTF-16LE decoded, all event types)
         │

@@ -21,7 +21,7 @@ def main() -> int:
         "event_id": str(uuid.uuid4()),
         "session_id": str(uuid.uuid4()),
         "developer_id": "gagantak00@gmail.com",
-        "agent_tool": "cursor",
+        "agent_tool": "antigravity",
         "project_repo": "github.com/demo/api-service",
         "event_type": "decision",
         "file_path": "src/auth.py",

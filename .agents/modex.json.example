@@ -1,0 +1,6 @@
+{
+  "project_repo": "github.com/YOUR_ORG/YOUR_REPO",
+  "agent_tool": "antigravity",
+  "developer_id": "",
+  "auto_hydrate": true
+}

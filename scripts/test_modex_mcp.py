@@ -18,7 +18,7 @@ def main() -> None:
 
     append_codebase_log(
         developer_id="test-dev",
-        agent_tool="cursor",
+        agent_tool="antigravity",
         project_repo=DEMO_REPO,
         event_type="file_edit",
         summary="Patched auth token refresh logic",

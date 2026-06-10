@@ -1,4 +1,4 @@
-"""MoDeX Face 1 MCP server — developer-edge memory for Cursor / Antigravity / Windsurf."""
+"""MoDeX Face 1 MCP server — developer-edge memory for Google Antigravity."""
 
 from __future__ import annotations
 

@@ -156,7 +156,7 @@ def main(argv: list[str] | None = None) -> int:
 
     def _common(p: argparse.ArgumentParser) -> None:
         p.add_argument("--repo", required=True, help="project_repo, e.g. github.com/org/name")
-        p.add_argument("--agent-tool", default=os.getenv("MODEX_AGENT_TOOL", "cursor"))
+        p.add_argument("--agent-tool", default=os.getenv("MODEX_AGENT_TOOL", "antigravity"))
         p.add_argument("--developer", default=os.getenv("MODEX_DEVELOPER_ID") or None)
 
     p_snap = sub.add_parser("snapshot", help="compress + store + verify the handoff")

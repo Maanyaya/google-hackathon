@@ -35,8 +35,8 @@ export function Setup({ setup, loading }) {
   const arch = s?.architecture;
   const urls = s?.urls;
 
-  const cursorJson = judge?.cursor_config
-    ? JSON.stringify(judge.cursor_config, null, 2)
+  const antigravityJson = judge?.antigravity_config
+    ? JSON.stringify(judge.antigravity_config, null, 2)
     : "";
 
   const mcpSetupVideoUrl = s?.videos?.mcp_setup || BUILD_MCP_VIDEO;
@@ -53,16 +53,17 @@ export function Setup({ setup, loading }) {
       <Reveal className="setup-video-block card">
         <div className="setup-video-head">
           <span className="setup-arch-tag tone-amber">Face 1 · video</span>
-          <h3 className="setup-block-title">MoDeX MCP setup in Cursor (new repo)</h3>
+          <h3 className="setup-block-title">MoDeX MCP setup in Antigravity (new repo)</h3>
           <p className="setup-block-lead">
             Step-by-step: download <code>remote_client.py</code>, configure{" "}
-            <code>~/.cursor/mcp.json</code>, add <code>.cursor/modex.json</code> in your repo,
+            <code>~/.gemini/antigravity/mcp_config.json</code>, add{" "}
+            <code>.agents/modex.json</code> in your repo,
             verify MCP tools, and log your first decision.
           </p>
         </div>
         <VideoEmbed
           url={mcpSetupVideoUrl}
-          title="MoDeX MCP setup in Cursor"
+          title="MoDeX MCP setup in Antigravity"
           className="demo-video-wrap setup-video-wrap"
           placeholderTitle="MCP setup video — upload in progress"
           placeholderLead="Drop your recording at frontend/public/videos/mcp-setup.mp4 and rebuild, or set MODEX_MCP_SETUP_VIDEO_URL on Cloud Run (YouTube / Loom / Drive link)."
@@ -134,7 +135,7 @@ export function Setup({ setup, loading }) {
           <Reveal className="setup-judge card">
             <h3 className="setup-block-title">Judge MCP credentials (Face 1)</h3>
             <p className="setup-block-lead">
-              Use these to connect Cursor or Antigravity to the hosted MoDeX memory API.
+              Use these to connect Google Antigravity to the hosted MoDeX memory API.
               Events you log appear as <strong>developer_id: judge</strong> on the dashboard.
             </p>
             <div className="setup-kv-grid">
@@ -158,10 +159,10 @@ export function Setup({ setup, loading }) {
               <CopyBlock label="Verify (curl)" text={judge.verify_curl} />
             )}
 
-            {cursorJson && (
+            {antigravityJson && (
               <CopyBlock
-                label="Cursor ~/.cursor/mcp.json (set absolute path to remote_client.py)"
-                text={cursorJson}
+                label="Antigravity ~/.gemini/antigravity/mcp_config.json (set absolute path to remote_client.py)"
+                text={antigravityJson}
               />
             )}
 

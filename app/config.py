@@ -66,7 +66,7 @@ ACTION_REPORT_SHEET_ID = os.getenv("ACTION_REPORT_SHEET_ID", "")
 ACTION_SHEET_RANGE = os.getenv("ACTION_SHEET_RANGE", "Agent Reports!A1")
 ACTION_WEBHOOK_URL = os.getenv("ACTION_WEBHOOK_URL", "")
 
-# Face 1 — MoDeX developer-edge session memory (Cursor / Antigravity MCP).
+# Face 1 — MoDeX developer-edge session memory (Google Antigravity MCP).
 MODEX_MEMORY_DATASET = os.getenv("MODEX_MEMORY_DATASET", "agent_memory")
 MODEX_MEMORY_TABLE = os.getenv("MODEX_MEMORY_TABLE", "session_logs")
 MODEX_CODEBASE_LOGS_TABLE = os.getenv("MODEX_CODEBASE_LOGS_TABLE", "codebase_logs")

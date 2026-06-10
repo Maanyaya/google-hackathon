@@ -32,7 +32,7 @@
       "eval_case_id": "session_handoff",
       "prompt": {
         "role": "user",
-        "parts": [{"text": "Show the codebase log timeline for github.com/demo/api-service. What file edits, decisions, and errors happened in the last Cursor session? What should a new Antigravity agent know?"}]
+        "parts": [{"text": "Show the codebase log timeline for github.com/demo/api-service. What file edits, decisions, and errors happened in the last Antigravity session? What should a new agent know?"}]
       }
     },
     {

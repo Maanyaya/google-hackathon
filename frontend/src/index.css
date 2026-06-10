@@ -1421,6 +1421,90 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .sub-judge-note a:hover { text-decoration: underline; }
 
 /* ============================================================
+   FIVETRAN HUB — partner track centerpiece
+   ============================================================ */
+
+.section-fivetran { padding-top: 2.5rem; }
+.ft-flow {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 0.5rem 0.75rem; margin-bottom: 1.5rem; padding: 1rem;
+  background: rgba(13,219,190,0.06); border: 1px solid rgba(13,219,190,0.15);
+  border-radius: var(--radius-sm);
+}
+.ft-flow-step {
+  padding: 0.55rem 0.85rem; border-radius: 8px; text-align: center; min-width: 120px;
+  background: rgba(255,255,255,0.04); border-left: 3px solid var(--tone, var(--teal));
+}
+.ft-flow-step.tone-sky { --tone: var(--sky); }
+.ft-flow-step.tone-teal { --tone: var(--teal); }
+.ft-flow-step.tone-amber { --tone: var(--amber); }
+.ft-flow-step.tone-violet { --tone: var(--violet); }
+.ft-flow-label { display: block; font-weight: 700; font-size: 0.82rem; color: var(--d-text); }
+.ft-flow-sub { display: block; font-size: 0.72rem; color: var(--d-text-3); margin-top: 0.15rem; }
+.ft-flow-arrow { color: var(--d-text-3); font-size: 1.1rem; }
+
+.ft-mcp-banner {
+  font-size: 0.82rem; color: var(--d-text-2); padding: 0.75rem 1rem; margin-bottom: 1rem;
+  background: rgba(255,190,77,0.08); border: 1px solid rgba(255,190,77,0.2); border-radius: 8px;
+}
+.ft-mcp-warn { color: var(--amber); font-weight: 700; }
+
+.ft-conn-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.85rem; margin-bottom: 1.25rem;
+}
+.ft-conn { padding: 1.1rem 1.15rem; border-left: 3px solid var(--teal); }
+.ft-conn-featured { border-left-color: var(--amber); background: rgba(245,166,35,0.04); }
+.ft-conn-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem; }
+.ft-conn-name { display: block; font-size: 0.95rem; color: var(--d-text); }
+.ft-conn-id { font-size: 0.68rem; color: var(--d-text-3); }
+.ft-conn-status {
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 0.15rem 0.45rem; border-radius: 5px; white-space: nowrap;
+}
+.ft-ok { color: #3DDC97; background: rgba(61,220,151,0.12); }
+.ft-warn { color: var(--warn); background: rgba(255,190,77,0.12); }
+.ft-idle { color: var(--sky); background: rgba(59,206,255,0.12); }
+.ft-catalog { color: var(--d-text-3); background: rgba(255,255,255,0.06); }
+.ft-conn-flow {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem;
+  font-size: 0.72rem; font-family: var(--mono); color: var(--d-text-2); margin-bottom: 0.45rem;
+}
+.ft-arrow { color: var(--teal); }
+.ft-conn-role { font-size: 0.78rem; color: var(--d-text-3); line-height: 1.45; margin: 0 0 0.35rem; }
+.ft-conn-meta { font-size: 0.68rem; color: var(--d-text-3); display: block; }
+.ft-catalog-note { font-style: italic; opacity: 0.85; }
+
+.ft-metrics-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;
+}
+@media (max-width: 768px) { .ft-metrics-row { grid-template-columns: 1fr; } }
+.ft-metrics, .ft-lineage, .ft-timeline { padding: 1.15rem 1.2rem; }
+.ft-metrics-head { font-size: 0.88rem; font-weight: 700; margin: 0 0 0.85rem; color: var(--d-text); }
+.ft-metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.65rem; margin-bottom: 1rem; }
+@media (max-width: 600px) { .ft-metrics-grid { grid-template-columns: 1fr; } }
+.ft-metric-val { font-family: var(--display); font-size: 1.35rem; font-weight: 700; color: var(--amber); display: block; }
+.ft-metric-label { font-size: 0.72rem; color: var(--d-text-2); display: block; }
+.ft-metric-sub { font-size: 0.65rem; color: var(--d-text-3); }
+.ft-metrics-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.btn-sm { padding: 0.45rem 0.85rem; font-size: 0.78rem; }
+
+.ft-lineage-list, .ft-timeline-list {
+  list-style: none; margin: 0; padding: 0; max-height: 180px; overflow-y: auto;
+}
+.ft-lineage-list li, .ft-timeline-list li {
+  font-size: 0.78rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; color: var(--d-text-2);
+}
+.ft-lineage-list code, .ft-timeline-conn { font-size: 0.72rem; color: var(--teal); }
+.ft-empty { font-size: 0.8rem; color: var(--d-text-3); line-height: 1.5; margin: 0; }
+.ft-timeline-ts { color: var(--d-text-3); min-width: 4.5rem; }
+.ft-timeline { margin-top: 0; }
+
+.pipe-flow { font-size: 0.7rem; color: var(--l-text-3); margin-bottom: 0.35rem; display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
+.pipe-conn-id { display: block; font-size: 0.65rem; color: var(--l-text-3); margin-top: 0.1rem; }
+
+/* ============================================================
    Enhanced Agents / Specialist cards
    ============================================================ */
 

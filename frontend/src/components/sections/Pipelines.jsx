@@ -19,9 +19,17 @@ function PipelineCard({ p }) {
         <div className="pipe-id">
           <strong>{p.name || p.id}</strong>
           <span>{p.service}</span>
+          {p.id && <code className="pipe-conn-id">{p.id}</code>}
         </div>
         <span className={`pipe-status pipe-${tone}`}>{p.paused ? "paused" : (p.status || "—")}</span>
       </div>
+      {p.source && p.destination && (
+        <div className="pipe-flow mono">
+          <span>{p.source}</span>
+          <span>→</span>
+          <span>{p.destination}</span>
+        </div>
+      )}
       <div className="pipe-meta mono">
         <span>last sync {p.succeeded_at ? fmtRelative(p.succeeded_at) : "—"}</span>
         {p.sync_frequency ? <span>every {p.sync_frequency}m</span> : null}
@@ -58,10 +66,10 @@ export function Pipelines({ pipelines, freshness }) {
       <div className="pipe-grid-wrap">
         <div className="pipe-col">
           <h4 className="pipe-col-head">Connections <span>group · BigQuery destination</span></h4>
-          {err || !list.length ? (
+          {err && !list.length ? (
             <div className="pipe-empty card">
               <span className="pipe-dot pipe-idle" />
-              Connector status loads from the Fivetran MCP on the deployed service.
+              Could not reach Fivetran MCP — see the Fivetran section above for the connector catalog.
             </div>
           ) : (
             <RevealGroup className="pipe-list">

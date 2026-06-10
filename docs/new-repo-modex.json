@@ -1,6 +1,6 @@
 {
   "project_repo": "github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME",
-  "agent_tool": "cursor",
+  "agent_tool": "antigravity",
   "developer_id": "YOUR_NAME",
   "auto_hydrate": true
 }

@@ -12,14 +12,30 @@ Step-by-step wiring for both faces. Every command is copy-pasteable.
 
 | Face | What you configure | Where it runs |
 |------|-------------------|---------------|
-| **Face 1** | IDE hooks + `.cursor/modex.json` / `.agents/modex.json` | Your machine (hooks call the hosted API) |
+| **Face 1** | Antigravity MCP + optional `.agents/hooks.json` / `.agents/modex.json` | Your machine (calls hosted API) |
 | **Face 2** | Already deployed on Cloud Run | https://agentic-data-platform-979112189932.asia-south1.run.app |
 
-Face 2 requires no local setup — open the dashboard and use it. Face 1 needs a one-time hook wiring in your IDE.
+Face 2 requires no local setup — open the dashboard and use it. Face 1 uses **Google Antigravity** (Section 7B). See [docs/HACKATHON_COMPLIANCE.md](docs/HACKATHON_COMPLIANCE.md).
 
 ---
 
-## Face 1 — Cursor configuration
+## Face 1 — Antigravity configuration (recommended)
+
+For judges and new repos, use the **hosted remote client** — no GCP on your machine:
+
+→ **[docs/NEW_REPO_MCP_SETUP.md](docs/NEW_REPO_MCP_SETUP.md)**  
+→ **[docs/ANTIGRAVITY_MCP_SETUP.md](docs/ANTIGRAVITY_MCP_SETUP.md)**
+
+Quick summary:
+
+1. `pip install mcp` + download `remote_client.py`
+2. Paste [docs/mcp-antigravity-judge.json](docs/mcp-antigravity-judge.json) into `~/.gemini/antigravity/mcp_config.json`
+3. Add `.agents/modex.json` in your repo (`agent_tool`: `antigravity`)
+4. Optional: `.agents/hooks.json` from `.agents/hooks.json.example`
+
+---
+
+## Face 1 — Owner / local BigQuery setup (advanced)
 
 ### Step 1 — Clone and install
 
@@ -55,56 +71,18 @@ FIVETRAN_API_SECRET=your-secret
 
 > The GCP service account JSON lives in the workspace root folder (one level above `agentic-data-platform/`). The hook runner auto-detects it there — you do not have to set `GOOGLE_APPLICATION_CREDENTIALS` if it is in that exact location.
 
-### Step 3 — Wire `.cursor/hooks.json`
+### Step 3 — Wire `.agents/hooks.json` (optional)
 
-Create or replace `.cursor/hooks.json` **in the workspace root** (the folder you open in Cursor, not inside `agentic-data-platform/`):
+Copy `.agents/hooks.json.example` → `.agents/hooks.json` **in the workspace root** and point commands at `modex_mcp/hook_runner.py` via `python.exe`.
 
-```json
-{
-  "version": 1,
-  "hooks": {
-    "sessionStart": [{
-      "command": "\"C:\\path\\to\\agentic-data-platform\\.venv\\Scripts\\python.exe\" \"C:\\path\\to\\agentic-data-platform\\modex_mcp\\hook_runner.py\" sessionStart"
-    }],
-    "sessionEnd": [{
-      "command": "\"C:\\path\\to\\agentic-data-platform\\.venv\\Scripts\\python.exe\" \"C:\\path\\to\\agentic-data-platform\\modex_mcp\\hook_runner.py\" sessionEnd"
-    }],
-    "beforeSubmitPrompt": [{
-      "command": "\"C:\\path\\to\\agentic-data-platform\\.venv\\Scripts\\python.exe\" \"C:\\path\\to\\agentic-data-platform\\modex_mcp\\hook_runner.py\" beforeSubmitPrompt"
-    }],
-    "afterAgentResponse": [{
-      "command": "\"C:\\path\\to\\agentic-data-platform\\.venv\\Scripts\\python.exe\" \"C:\\path\\to\\agentic-data-platform\\modex_mcp\\hook_runner.py\" afterAgentResponse"
-    }],
-    "afterFileEdit": [{
-      "command": "\"C:\\path\\to\\agentic-data-platform\\.venv\\Scripts\\python.exe\" \"C:\\path\\to\\agentic-data-platform\\modex_mcp\\hook_runner.py\" afterFileEdit"
-    }],
-    "postToolUse": [{
-      "command": "\"C:\\path\\to\\agentic-data-platform\\.venv\\Scripts\\python.exe\" \"C:\\path\\to\\agentic-data-platform\\modex_mcp\\hook_runner.py\" postToolUse"
-    }],
-    "postToolUseFailure": [{
-      "command": "\"C:\\path\\to\\agentic-data-platform\\.venv\\Scripts\\python.exe\" \"C:\\path\\to\\agentic-data-platform\\modex_mcp\\hook_runner.py\" postToolUseFailure"
-    }],
-    "afterShellExecution": [{
-      "command": "\"C:\\path\\to\\agentic-data-platform\\.venv\\Scripts\\python.exe\" \"C:\\path\\to\\agentic-data-platform\\modex_mcp\\hook_runner.py\" afterShellExecution"
-    }],
-    "afterMCPExecution": [{
-      "command": "\"C:\\path\\to\\agentic-data-platform\\.venv\\Scripts\\python.exe\" \"C:\\path\\to\\agentic-data-platform\\modex_mcp\\hook_runner.py\" afterMCPExecution"
-    }],
-    "stop": [{
-      "command": "\"C:\\path\\to\\agentic-data-platform\\.venv\\Scripts\\python.exe\" \"C:\\path\\to\\agentic-data-platform\\modex_mcp\\hook_runner.py\" stop"
-    }]
-  }
-}
-```
+> **Critical (Windows):** Commands must call `python.exe` directly — never via a `.cmd` or `.bat` wrapper. Some Windows IDEs pipe hook stdin as UTF-16LE; if you add a `cmd.exe` layer, stdin is dropped and nothing is logged.
 
-> **Critical (Windows):** Commands must call `python.exe` directly — never via a `.cmd` or `.bat` wrapper. Cursor on Windows pipes hook stdin as UTF-16LE; if you add a `cmd.exe` layer, stdin is dropped and nothing is logged.
-
-### Step 4 — Set `.cursor/modex.json`
+### Step 4 — Set `.agents/modex.json`
 
 ```json
 {
   "project_repo": "github.com/your-org/your-repo",
-  "agent_tool": "cursor",
+  "agent_tool": "antigravity",
   "developer_id": "your-email@example.com",
   "auto_hydrate": true
 }
@@ -113,14 +91,14 @@ Create or replace `.cursor/hooks.json` **in the workspace root** (the folder you
 | Key | What it does |
 |-----|--------------|
 | `project_repo` | Repo slug stamped on every event — used to group sessions |
-| `agent_tool` | Label for the IDE (`cursor`, `antigravity`, `windsurf`) |
+| `agent_tool` | Label for the IDE (use `antigravity`) |
 | `developer_id` | Optional — defaults to git `user.email` if blank |
 | `auto_hydrate` | `true` → on session start, loads last context pack automatically |
 
-### Step 5 — Restart Cursor and verify
+### Step 5 — Restart Antigravity and verify
 
-1. Restart Cursor (hooks load at startup)
-2. Open **Settings → Hooks** — `modex_*` entries should appear
+1. Restart Antigravity (hooks load at startup)
+2. Confirm MCP → `modex-memory` connected
 3. Send any message in the agent
 4. Check the debug log:
 
@@ -231,7 +209,9 @@ The hook runner writes `.agents/modex-hydration.md` on every `sessionStart` even
 
 Use this if you just want to log decisions and read context — no hooks, no local install.
 
-### Cursor `~/.cursor/mcp.json`
+### Antigravity `~/.gemini/antigravity/mcp_config.json`
+
+Use [docs/mcp-antigravity-judge.json](docs/mcp-antigravity-judge.json) — set `"MODEX_AGENT_TOOL": "antigravity"`.
 
 ```json
 {
@@ -242,6 +222,7 @@ Use this if you just want to log decisions and read context — no hooks, no loc
       "env": {
         "MODEX_API_URL": "https://agentic-data-platform-979112189932.asia-south1.run.app",
         "MODEX_API_KEY": "msk-7079ba3cdcf863affee3bbdea41b0485",
+        "MODEX_AGENT_TOOL": "antigravity",
         "MODEX_DEVELOPER_ID": "your-name"
       }
     }
@@ -249,23 +230,7 @@ Use this if you just want to log decisions and read context — no hooks, no loc
 }
 ```
 
-### Antigravity `~/.gemini/antigravity/mcp_config.json`
-
-```json
-{
-  "mcpServers": {
-    "modex-memory": {
-      "command": "python",
-      "args": ["/path/to/remote_client.py"],
-      "env": {
-        "MODEX_API_URL": "https://agentic-data-platform-979112189932.asia-south1.run.app",
-        "MODEX_API_KEY": "msk-7079ba3cdcf863affee3bbdea41b0485",
-        "MODEX_DEVELOPER_ID": "your-name"
-      }
-    }
-  }
-}
-```
+> Section 7B: use Antigravity only for Face 1 setup. See [docs/HACKATHON_COMPLIANCE.md](docs/HACKATHON_COMPLIANCE.md).
 
 Get `remote_client.py`:
 ```bash
@@ -296,7 +261,7 @@ Three demo missions:
 | Mission | Prompt | What it demonstrates |
 |---------|--------|----------------------|
 | Hydrate me | `Hydrate me on github.com/Maanyaya/google-hackathon` | Memory answers — decisions, rejected, files |
-| Why this? | `Why was python.exe chosen over .cmd for Cursor hooks?` | Provenance — session decision + PR citation |
+| Why this? | `Why was python.exe chosen over .cmd for Antigravity hooks?` | Provenance — session decision + PR citation |
 | Pipeline health | `What is the sync status of the MoDeX logs pipeline?` | Live Fivetran MCP — connector status, last sync |
 
 ---
@@ -387,15 +352,15 @@ Share the sheet with the service account email (Editor role).
 | `"parsed": false` with garbled text | Wrong encoding | Already handled — runner auto-decodes UTF-16LE/UTF-8/BOM |
 | Hook fires but no BQ row | Credentials not found | Check `GOOGLE_APPLICATION_CREDENTIALS` or SA JSON at workspace root |
 | `modex-hook-debug.log` not created | `hook_runner.py` path wrong | Verify the absolute path in `hooks.json` points to the correct `.venv` |
-| `session_id` is `unknown` | `conversation_id` missing from payload | Ensure Cursor version supports `conversationId` in hook payload (≥0.47) |
+| `session_id` is `unknown` | `conversation_id` missing from payload | Ensure Antigravity hook payload includes session/conversation id |
 
 ### Face 1 MCP
 
 | Symptom | Fix |
 |---------|-----|
-| `modex-memory` not appearing in Cursor MCP list | Restart Cursor after editing `mcp.json` |
+| `modex-memory` not appearing in Antigravity MCP list | Restart Antigravity after editing `mcp_config.json` |
 | `load_context` returns empty | No events logged yet — send a message first, then call `load_context` |
-| `401 Unauthorized` | Wrong API key in `mcp.json` env |
+| `401 Unauthorized` | Wrong API key in MCP env |
 
 ### Face 2
 
@@ -413,7 +378,7 @@ Share the sheet with the service account email (Editor role).
 # 1 — Unit tests
 .venv\Scripts\python.exe -m pytest tests\unit\ -q
 
-# 2 — End-to-end: fires hooks exactly like Cursor (UTF-16LE), writes to BQ + Sheet,
+# 2 — End-to-end: fires hooks (UTF-16LE), writes to BQ + Sheet,
 #     reads sheet cells back, hydrates as Agent B
 .venv\Scripts\python.exe scripts\verify_pipeline_rigorous.py
 

@@ -1,4 +1,4 @@
-"""IDE hooks -> MoDeX auto-logger (Cursor + Antigravity).
+"""IDE hooks -> MoDeX auto-logger (Google Antigravity).
 
 This is the capture half of MoDeX (Face 1). Each IDE event (session start, user
 prompt, agent response, tool call, file edit, error, session end) is delivered
@@ -8,9 +8,9 @@ Sheet. When a conversation ends we deterministically compress the whole session
 into a JSON + Markdown handoff (``context_compressed``) so any other agent
 (Antigravity, a teammate, Face 2) can load the full context.
 
-IMPORTANT (Windows): Cursor must invoke this file with python.exe DIRECTLY.
+IMPORTANT (Windows): hooks must invoke this file with python.exe DIRECTLY.
 Routing through a ``.cmd``/``.bat`` wrapper drops stdin on Windows, which means
-hooks fire with an empty payload and nothing real gets logged. See ``hooks.json``.
+hooks fire with an empty payload and nothing real gets logged. See ``.agents/hooks.json``.
 """
 
 from __future__ import annotations
@@ -61,8 +61,7 @@ from modex_mcp.memory_store import (  # noqa: E402
 _EVENT = sys.argv[1] if len(sys.argv) > 1 else ""
 _CONFIG_PATHS = (
     _WORKSPACE / ".agents" / "modex.json",
-    _WORKSPACE / ".cursor" / "modex.json",
-    _ROOT / ".cursor" / "modex.json",
+    _ROOT / ".agents" / "modex.json",
 )
 _AGENTS_DIR = _WORKSPACE / ".agents"
 _HYDRATION_FILE = _AGENTS_DIR / "modex-hydration.md"
@@ -91,7 +90,7 @@ def _cfg() -> dict[str, Any]:
             "MODEX_PROJECT_REPO",
             file_cfg.get("project_repo", "github.com/demo/api-service"),
         ),
-        "agent_tool": os.getenv("MODEX_AGENT_TOOL", file_cfg.get("agent_tool", "cursor")),
+        "agent_tool": os.getenv("MODEX_AGENT_TOOL", file_cfg.get("agent_tool", "antigravity")),
         "developer_id": os.getenv("MODEX_DEVELOPER_ID", file_cfg.get("developer_id", "")),
         "auto_hydrate": file_cfg.get("auto_hydrate", True),
     }
@@ -181,7 +180,7 @@ def _project_repo(payload: dict[str, Any]) -> str:
 
 
 def _session_id(payload: dict[str, Any]) -> str:
-    """Cursor sends ``conversation_id`` (stable per chat); ``session_id`` only
+    """Hook payloads send ``conversation_id`` (stable per chat); ``session_id`` only
     on sessionStart. Antigravity may use ``conversation_id``/``thread_id``."""
     for key in ("conversation_id", "session_id", "thread_id", "parent_conversation_id"):
         val = payload.get(key)
@@ -210,7 +209,7 @@ def _set_active_session(sid: str) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# payload field extractors (tolerant to Cursor + Antigravity shapes)
+# payload field extractors (tolerant to Antigravity + MCP hook shapes)
 # --------------------------------------------------------------------------- #
 def _prompt_text(payload: dict[str, Any]) -> str:
     for key in ("prompt", "user_prompt", "message", "input", "user_message", "text"):
@@ -400,7 +399,7 @@ def _ensure_session(payload: dict[str, Any], *, ide: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Cursor handlers
+# Standard hook event handlers (MCP-compatible IDE payloads)
 # --------------------------------------------------------------------------- #
 def _handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
     cfg = _cfg()
@@ -415,7 +414,7 @@ def _handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
         agent_tool=cfg["agent_tool"],
         project_repo=repo,
         event_type="session_start",
-        summary=f"Cursor session started ({mode})",
+        summary=f"Antigravity session started ({mode})",
         session_id=sid,
         payload={"composer_mode": mode, "auto": True},
     )
@@ -438,7 +437,7 @@ def _handle_session_start(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def _handle_before_prompt(payload: dict[str, Any]) -> dict[str, Any]:
-    sid = _ensure_session(payload, ide="Cursor")
+    sid = _ensure_session(payload, ide="Antigravity")
     prompt = _prompt_text(payload)
     if prompt:
         cfg = _cfg()
@@ -690,7 +689,7 @@ def _handle_antigravity_stop(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 _HANDLERS = {
-    # Cursor
+    # MCP-compatible hook events
     "sessionStart": _handle_session_start,
     "sessionEnd": _handle_session_end,
     "beforeSubmitPrompt": _handle_before_prompt,
@@ -711,7 +710,7 @@ _HANDLERS = {
 
 
 def _decode_stdin(raw_bytes: bytes) -> str:
-    """Cursor on Windows may pipe UTF-16LE; manual pipes use UTF-8."""
+    """Some Windows IDEs pipe UTF-16LE on stdin; manual pipes use UTF-8."""
     if not raw_bytes:
         return ""
     # Strip BOM/null-padding artifacts from UTF-16 reads mis-decoded as latin-1
@@ -743,7 +742,7 @@ def _parse_hook_json(raw: str) -> dict[str, Any]:
             return parsed
     except json.JSONDecodeError:
         pass
-    # Some Cursor builds wrap extra bytes; grab the outermost JSON object.
+    # Some hook builds wrap extra bytes; grab the outermost JSON object.
     start = text.find("{")
     end = text.rfind("}")
     if start >= 0 and end > start:

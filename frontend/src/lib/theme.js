@@ -24,9 +24,8 @@ export const EVENT_TYPES = {
 };
 
 export const AGENT_TOOLS = {
-  cursor: { label: "Cursor", color: "#22D3EE", bg: "rgba(34,211,238,0.12)" },
   antigravity: { label: "Antigravity", color: "#9D8DF1", bg: "rgba(157,141,241,0.12)" },
-  windsurf: { label: "Windsurf", color: "#3DDC97", bg: "rgba(61,220,151,0.12)" },
+  ide: { label: "IDE", color: "#22D3EE", bg: "rgba(34,211,238,0.12)" },
 };
 
 export const AGENT_META = {
@@ -44,7 +43,7 @@ export const FACE2_AGENDA = [
     title: "Answer from centralized memory",
     desc: "What did the team decide? Why PostgreSQL not MongoDB? What was rejected? Every answer cites session logs + GitHub PRs synced via Fivetran.",
     examples: [
-      "Hydrate a new Cursor session on this repo",
+      "Hydrate a new Antigravity session on this repo",
       "Cross-reference a decision with PR #142",
     ],
   },
@@ -129,6 +128,7 @@ export const QUICK_MISSIONS = [
 
 export const NAV = [
   { id: "submission", label: "Submission" },
+  { id: "fivetran", label: "Fivetran" },
   { id: "architecture", label: "Architecture" },
   { id: "stack", label: "Stack" },
   { id: "ask", label: "Ask Face 2" },

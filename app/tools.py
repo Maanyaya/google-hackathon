@@ -14,7 +14,7 @@ from app.fivetran_mcp import call_fivetran_tool
 
 
 _KNOWN_DATASETS = [
-    (config.MODEX_MEMORY_DATASET, "Face 1 session memory from coding agents (Cursor, Antigravity, etc.)"),
+    (config.MODEX_MEMORY_DATASET, "Face 1 session memory from Google Antigravity coding agents"),
     (config.MODEX_FIVETRAN_BQ_DATASET, "MoDeX logs synced via Fivetran connector stowed_register"),
     (config.BQ_METADATA_DATASET, "Fivetran Platform Connector pipeline metadata"),
     ("analytics", "dbt analytics models (Fivetran Transformations for dbt Core)"),
@@ -440,7 +440,7 @@ def get_agent_memory_catalog() -> dict[str, Any]:
 def get_agent_memory_for_project(project_repo: str, limit: int = 50) -> dict[str, Any]:
     """Replay codebase logs for session handoff — decisions, file edits, errors.
 
-    Primary Face 1 memory from Cursor/Antigravity append-only event log.
+    Primary Face 1 memory from Antigravity append-only event log.
 
     Args:
         project_repo: Repository or project identifier (e.g. github.com/org/api-service).

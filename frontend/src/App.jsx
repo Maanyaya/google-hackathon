@@ -11,6 +11,9 @@ const Submission = lazy(() =>
 const AskGuide = lazy(() =>
   import("./components/sections/AskGuide").then((m) => ({ default: m.AskGuide })),
 );
+const FivetranHub = lazy(() =>
+  import("./components/sections/FivetranHub").then((m) => ({ default: m.FivetranHub })),
+);
 const Stack = lazy(() =>
   import("./components/sections/Stack").then((m) => ({ default: m.Stack })),
 );
@@ -58,6 +61,7 @@ export default function App() {
     impact,
     pipelines,
     freshness,
+    fivetranHub,
     setup,
     packLoading,
     topoLoading,
@@ -102,7 +106,12 @@ export default function App() {
       <Problem />
       <Architecture />
 
-      {/* Stack & integrations — before Ask so judges see "built with" first */}
+      {/* Fivetran track centerpiece */}
+      <Suspense fallback={<SectionFallback min={520} />}>
+        <FivetranHub hub={fivetranHub} onNav={onNav} />
+      </Suspense>
+
+      {/* Stack & integrations */}
       <Suspense fallback={<SectionFallback min={480} />}>
         <Stack />
       </Suspense>

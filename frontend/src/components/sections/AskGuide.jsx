@@ -31,7 +31,7 @@ const DEMO_CHIPS = [
     id: "why",
     label: "Why this stack?",
     icon: "reason",
-    prompt: "Why was python.exe chosen over a .cmd wrapper for the Cursor hooks? Cross-reference with any GitHub PR review.",
+    prompt: "Why was python.exe chosen over a .cmd wrapper for the Antigravity hooks? Cross-reference with any GitHub PR review.",
   },
   {
     id: "trigger",

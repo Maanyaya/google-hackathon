@@ -132,7 +132,7 @@ export function FlowDiagram() {
             <Node
               color="var(--sky)"
               icon={Ico.ide}
-              title="Agent A works in Cursor"
+              title="Agent A works in Antigravity"
               sub="types a prompt → edits files → makes decisions"
               chips={["beforeSubmitPrompt", "afterAgentResponse", "postToolUse", "afterFileEdit", "stop"]}
             />
@@ -207,7 +207,7 @@ export function FlowDiagram() {
               color="var(--green)"
               icon={Ico.ide}
               title="Agent B (any IDE)"
-              sub="Antigravity · Cursor · Windsurf on any machine"
+              sub="Google Antigravity on any machine"
               chips={["decisions loaded", "rejected approaches known", "zero cold start"]}
             />
           </div>

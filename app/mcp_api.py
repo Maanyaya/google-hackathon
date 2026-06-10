@@ -6,7 +6,7 @@ Cloud Run already runs with a service account, so it holds the credentials. Each
 teammate only needs a per-user API key + this base URL — no GCP key, no cloning.
 
 A thin stdio MCP client (`modex_mcp/remote_client.py`) calls these endpoints, so
-the exact same memory tools work in Cursor on Windows and Antigravity on a Mac,
+the exact same memory tools work in Antigravity on Windows and Antigravity on a Mac,
 all writing into the one shared BigQuery memory bus.
 
 Auth: send the per-user key as `Authorization: Bearer <key>` (or `X-MoDeX-Key`).

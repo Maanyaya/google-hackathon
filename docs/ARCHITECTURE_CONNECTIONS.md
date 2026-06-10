@@ -9,7 +9,7 @@
 ```mermaid
 flowchart TB
     subgraph FACE1["FACE 1 — Developer edge"]
-        IDE["Cursor / Antigravity / Windsurf"]
+        IDE["Google Antigravity"]
         HOOKS["hook_runner.py"]
         MCP1["MoDeX MCP\n(remote_client.py)"]
         IDE -->|"prompts, edits, decisions"| HOOKS
@@ -64,7 +64,7 @@ flowchart TB
 
 | From | To | Protocol / tool | What flows |
 |------|-----|-----------------|------------|
-| **Developer IDE** | `hook_runner.py` | Cursor/Antigravity hooks | Raw IDE events (prompt, file edit, stop) |
+| **Developer IDE** | `hook_runner.py` | Antigravity hooks | Raw IDE events (prompt, file edit, stop) |
 | **Developer IDE** | **MoDeX MCP** | MCP over stdio | `load_context`, `log_decision`, `compress_context` |
 | **MoDeX MCP** | **Cloud Run Face 1 API** | HTTPS + Bearer `msk-*` | JSON logs, decisions, session compress |
 | **Face 1 API** | **BigQuery** | Streaming insert | `agent_memory.codebase_logs` rows |
@@ -90,7 +90,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     participant Dev as Developer (Agent A)
-    participant IDE as Cursor
+    participant IDE as Antigravity
     participant Hook as hook_runner
     participant MCP as MoDeX MCP
     participant API as Cloud Run API
@@ -186,8 +186,8 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    A["Agent A · PC1 · Cursor\ndeveloper_id: judge"]
-    B["Agent B · PC2 · Cursor\ndeveloper_id: judge2"]
+    A["Agent A · PC1 · Antigravity\ndeveloper_id: judge"]
+    B["Agent B · PC2 · Antigravity\ndeveloper_id: judge2"]
     REPO["Same GitHub repo\ngithub.com/.../hackathon-demo"]
     MEM["Shared memory slug\nsame project_repo"]
 

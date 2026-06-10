@@ -1,7 +1,7 @@
 """RIGOROUS end-to-end proof of the MoDeX handoff pipeline.
 
 This does NOT shortcut anything. It:
-  1. Fires each Cursor hook event the EXACT way Cursor does on Windows:
+  1. Fires each hook event the EXACT way Windows IDEs do:
      python.exe hook_runner.py EVENT  with the payload piped as UTF-16LE bytes.
   2. Uses a fresh conversation_id so we measure only this run.
   3. Snapshots (compress -> BigQuery -> Google Sheet).
@@ -43,9 +43,9 @@ CONV = f"rigor-{uuid.uuid4().hex[:10]}"
 
 
 def fire(event: str, payload: dict) -> str:
-    """Invoke the hook exactly like Cursor on Windows: UTF-16LE bytes on stdin."""
+    """Invoke the hook like Windows IDEs: UTF-16LE bytes on stdin."""
     payload = {"conversation_id": CONV, **payload}
-    raw = json.dumps(payload).encode("utf-16-le")  # mimic Cursor Windows stdin
+    raw = json.dumps(payload).encode("utf-16-le")  # mimic Windows IDE stdin
     proc = subprocess.run(
         [str(PY), str(RUNNER), event],
         input=raw,
@@ -75,12 +75,12 @@ def read_sheet_row(updated_range: str) -> list[str]:
 
 
 def main() -> int:
-    print(f"=== STEP 1: fire Cursor hooks as UTF-16LE stdin (conv {CONV}) ===")
+    print(f"=== STEP 1: fire hooks as UTF-16LE stdin (conv {CONV}) ===")
     fire("beforeSubmitPrompt", {"prompt": "Rigorously verify MoDeX context handoff works", "generation_id": "g1"})
     fire("postToolUse", {"tool_name": "Read", "tool_input": {"path": "modex_mcp/handoff.py"}})
     fire("afterFileEdit", {"file_path": "modex_mcp/hook_runner.py", "edits": [{"old_string": "x", "new_string": "y"}]})
     fire("afterShellExecution", {"command": "python -m pytest tests/unit", "output": "11 passed"})
-    fire("afterAgentResponse", {"text": "Decoded UTF-16 stdin from Cursor on Windows; prompts/responses now captured.", "generation_id": "g1"})
+    fire("afterAgentResponse", {"text": "Decoded UTF-16 stdin on Windows; prompts/responses now captured.", "generation_id": "g1"})
     fire("beforeSubmitPrompt", {"prompt": "Now confirm Agent B can load the same context from the sheet", "generation_id": "g2"})
     fire("afterAgentResponse", {"text": "Snapshot writes a rich handoff row; hydrate returns it for the next agent.", "generation_id": "g2"})
 
@@ -96,7 +96,7 @@ def main() -> int:
 
     print("\n=== STEP 3: snapshot -> compress -> BigQuery + Google Sheet ===")
     snap = ms.save_compressed_context(
-        developer_id="gagantak00@gmail.com", agent_tool="cursor",
+        developer_id="gagantak00@gmail.com", agent_tool="antigravity",
         project_repo=REPO, session_id=CONV,
     )
     print("  status:", snap.get("status"), "|", snap.get("summary"))
