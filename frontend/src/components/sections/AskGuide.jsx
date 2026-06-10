@@ -15,9 +15,30 @@ function formatElapsed(ms) {
 }
 
 const DEMO_CHIPS = [
-  { id: "hydrate", label: "Hydrate me", icon: "hydrate", prompt: "Hydrate me on github.com/Maanyaya/google-hackathon" },
-  { id: "why", label: "Why this stack?", icon: "reason", prompt: "Why was python.exe chosen over a .cmd wrapper for the Cursor hooks?" },
-  { id: "pipeline", label: "Pipeline health", icon: "pipeline", prompt: "What is the current sync status of the MoDeX logs pipeline?" },
+  {
+    id: "hydrate",
+    label: "Hydrate me",
+    icon: "hydrate",
+    prompt: "Hydrate me on github.com/Maanyaya/google-hackathon",
+  },
+  {
+    id: "pipeline",
+    label: "Pipeline trust",
+    icon: "pipeline",
+    prompt: "What is the current sync status of the MoDeX logs pipeline? Check the Platform Connector metadata for freshness and lineage.",
+  },
+  {
+    id: "why",
+    label: "Why this stack?",
+    icon: "reason",
+    prompt: "Why was python.exe chosen over a .cmd wrapper for the Cursor hooks? Cross-reference with any GitHub PR review.",
+  },
+  {
+    id: "trigger",
+    label: "Trigger sync",
+    icon: "pipeline",
+    prompt: "Check the stowed_register connector health. If the MoDeX logs are stale, request approval to trigger a resync.",
+  },
 ];
 
 export function AskGuide() {

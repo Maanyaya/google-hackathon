@@ -1246,6 +1246,90 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 /* ============================================================
+   STACK & INTEGRATIONS
+   ============================================================ */
+
+.stack-group-head {
+  display: flex; align-items: center; gap: 0.7rem;
+  font-size: 0.84rem; font-weight: 600; color: var(--l-text-2);
+  margin: 0 0 1.1rem; letter-spacing: 0.01em;
+}
+.stack-group-badge {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 6px;
+}
+.stack-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.9rem; margin-bottom: 2.5rem;
+}
+.stack-card {
+  padding: 1.1rem 1.2rem; border-left: 3px solid var(--sc, var(--l-line));
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.stack-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(2,6,20,0.1); }
+.stack-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.7rem; }
+.stack-icon { display: flex; }
+.stack-badge {
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 0.15rem 0.45rem; border-radius: 5px;
+}
+.stack-name { font-family: var(--display); font-weight: 700; font-size: 0.95rem; color: var(--l-text); margin-bottom: 0.2rem; }
+.stack-role { font-size: 0.8rem; font-weight: 600; color: var(--l-text-2); margin-bottom: 0.4rem; }
+.stack-detail { font-size: 0.75rem; color: var(--l-text-3); line-height: 1.5; }
+
+/* partner banner */
+.stack-partner-banner {
+  display: grid; grid-template-columns: 1fr 1.1fr; gap: 2rem;
+  background: linear-gradient(135deg, rgba(10,214,187,0.06), rgba(155,140,255,0.06));
+  border: 1px solid var(--l-line-2); border-radius: var(--radius-sm);
+  padding: 1.75rem 1.75rem; margin-top: 0.5rem;
+}
+@media (max-width: 860px) { .stack-partner-banner { grid-template-columns: 1fr; } }
+.stack-partner-badge {
+  display: inline-block; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--teal); background: rgba(10,214,187,0.12);
+  padding: 0.22rem 0.65rem; border-radius: 6px; margin-bottom: 0.75rem;
+}
+.stack-partner-head { font-family: var(--display); font-size: 1.15rem; font-weight: 700; color: var(--l-text); margin: 0 0 0.5rem; }
+.stack-partner-lead { font-size: 0.85rem; color: var(--l-text-2); line-height: 1.6; margin-bottom: 1rem; }
+.stack-partner-lead strong { color: var(--l-text); }
+.stack-partner-lead code { font-family: var(--mono); font-size: 0.8em; background: var(--l-line); padding: 0.1rem 0.35rem; border-radius: 4px; }
+
+.stack-mcp-tools { display: flex; flex-direction: column; gap: 0.45rem; }
+.stack-mcp-tool {
+  display: flex; align-items: baseline; gap: 0.65rem;
+  font-size: 0.82rem;
+}
+.stack-mcp-tool code {
+  font-family: var(--mono); font-size: 0.78rem; color: var(--teal);
+  background: rgba(10,214,187,0.1); padding: 0.12rem 0.45rem; border-radius: 5px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.stack-mcp-tool span { color: var(--l-text-3); }
+
+.stack-partner-connectors { display: flex; flex-direction: column; gap: 0.75rem; }
+.stack-partner-sub {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--l-text-3); margin-bottom: 0.2rem; display: block;
+}
+.stack-connector {
+  padding: 0.85rem 1rem; border-radius: 10px;
+  background: var(--l-surface); border: 1px solid var(--l-line);
+  border-left: 3px solid var(--cc, var(--l-line));
+}
+.stack-conn-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem; }
+.stack-conn-name { font-weight: 700; font-size: 0.88rem; color: var(--l-text); }
+.stack-conn-badge { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em; }
+.stack-conn-flow {
+  display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;
+  font-size: 0.72rem; font-family: var(--mono); color: var(--l-text-3);
+  margin-bottom: 0.35rem;
+}
+.stack-conn-source { color: var(--cc, var(--l-text-2)); font-weight: 600; }
+.stack-conn-dest { color: var(--l-text-2); }
+.stack-conn-role { font-size: 0.76rem; color: var(--l-text-3); line-height: 1.5; }
+
+/* ============================================================
    Enhanced Agents / Specialist cards
    ============================================================ */
 

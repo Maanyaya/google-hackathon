@@ -12,6 +12,39 @@
 
 ---
 
+## Built with (DevPost checklist)
+
+| Layer | Technology | Role |
+|-------|-----------|------|
+| **Core AI** | Gemini 2.5 Flash (Vertex AI) | All agent reasoning — multi-step missions, citations |
+| **Agent framework** | Google ADK (Agent Dev Kit) | Multi-agent orchestration: Mission Control + 3 specialists |
+| **Deployment** | Google Cloud Run (asia-south1) | Both faces served from one serverless revision |
+| **Ground-truth store** | Google BigQuery (`agent_memory.codebase_logs`) | Append-only log; Face 2 queries this first |
+| **Warehouse** | Google BigQuery (`modex_logs.modex_logs`) | Fivetran destination — warehouse copy for reporting |
+| **Secrets** | Google Secret Manager | Fivetran API key + secret — never in env vars |
+| **Partner superpower** | **Fivetran MCP** (`fivetran-mcp`) | Pipeline operations live inside the agent conversation |
+| **Data movement** | Fivetran — 3 connectors | Google Sheets → BQ, GitHub → BQ, Platform Connector → BQ |
+
+---
+
+## Fivetran integrations (the partner story)
+
+| Connector | ID | Source | Destination | Why it matters |
+|-----------|-----|--------|-------------|----------------|
+| MoDeX Logs | `stowed_register` | Google Sheets · MoDex_Logs tab | `modex_logs.modex_logs` (BigQuery) | Every IDE session → queryable warehouse table |
+| GitHub PRs | `solve_unhurt` | GitHub · PRs + reviews | `github.*` tables (BigQuery) | Grounds decisions in code review history |
+| Platform Connector ★ | `elemental_apparel` | Fivetran Platform | Pipeline metadata + lineage | **Lineage + trust** — Face 2 reports freshness, schema drift |
+
+★ The Platform Connector is the **differentiator** — Face 2 calls `get_connector_lineage` and answers questions about *data trust*, not just data content.
+
+**Fivetran MCP tools visible in agent trace:**
+- `list_connections` — all connector statuses
+- `get_connection_details` — schema, sync history, errors
+- `sync_connection` — trigger resync (Guardian-gated, user approves)
+- `get_connector_lineage` — OpenLineage metadata from Platform Connector
+
+---
+
 ## Test Face 2 right now (no install needed)
 
 Open the dashboard: **https://agentic-data-platform-979112189932.asia-south1.run.app/dashboard/**
@@ -28,13 +61,19 @@ Hydrate me on github.com/Maanyaya/google-hackathon
 ```
 Why was python.exe chosen over a .cmd wrapper for the Cursor hooks?
 ```
-**What you'll see:** Face 2 cites a specific `decision` event from a prior coding session, cross-referenced with any relevant GitHub PR reviews synced by Fivetran.
+**What you'll see:** Face 2 cites a specific `decision` event from a prior coding session, cross-referenced with any relevant GitHub PR reviews synced by Fivetran (`solve_unhurt` connector → `github.pull_request_review` table).
 
-### Mission 3 — Pipeline health (live Fivetran MCP)
+### Mission 3 — Pipeline trust (live Fivetran MCP)
 ```
-What is the current sync status of the MoDeX logs pipeline?
+What is the current sync status of the MoDeX logs pipeline? Check the Platform Connector metadata for freshness and lineage.
 ```
-**What you'll see:** Face 2 calls the Fivetran MCP live, returns connector status, last sync time, and freshness for the `stowed_register` connector that feeds `modex_logs.modex_logs` in BigQuery.
+**What you'll see:** Face 2 calls the Fivetran MCP live — `list_connections` + `get_connector_lineage` — returns connector status for `stowed_register`, last sync time, and lineage metadata from the Platform Connector (`elemental_apparel`). This is the differentiator: not just "is it synced?" but "what changed, what's the lineage, is the data trustworthy?"
+
+### Mission 4 — Trigger resync with Guardian approval
+```
+Check the stowed_register connector health. If the MoDeX logs are stale, request approval to trigger a resync.
+```
+**What you'll see:** Face 2 calls `get_connection_details` on `stowed_register`, reports staleness, then calls `sync_connection` — but only after the Guardian agent asks for your approval. This shows the governed write pattern (user stays in control).
 
 ---
 

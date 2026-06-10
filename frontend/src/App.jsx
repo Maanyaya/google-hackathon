@@ -8,6 +8,9 @@ import { Architecture } from "./components/sections/Architecture";
 const AskGuide = lazy(() =>
   import("./components/sections/AskGuide").then((m) => ({ default: m.AskGuide })),
 );
+const Stack = lazy(() =>
+  import("./components/sections/Stack").then((m) => ({ default: m.Stack })),
+);
 const Setup = lazy(() =>
   import("./components/sections/Setup").then((m) => ({ default: m.Setup })),
 );
@@ -91,7 +94,12 @@ export default function App() {
       <Problem />
       <Architecture />
 
-      {/* Face 2 agent console — high up so visitors can interact immediately */}
+      {/* Stack & integrations — before Ask so judges see "built with" first */}
+      <Suspense fallback={<SectionFallback min={480} />}>
+        <Stack />
+      </Suspense>
+
+      {/* Face 2 agent console */}
       <Suspense fallback={<SectionFallback min={520} />}>
         <AskGuide />
       </Suspense>
