@@ -146,6 +146,10 @@ GITHUB_REPO_URL = os.getenv(
     "GITHUB_REPO_URL", "https://github.com/Maanyaya/google-hackathon"
 )
 
+# Dashboard embeds — set on Cloud Run after uploading (no frontend rebuild required).
+MODEX_MCP_SETUP_VIDEO_URL = os.getenv("MODEX_MCP_SETUP_VIDEO_URL", "").strip()
+MODEX_DEMO_VIDEO_URL = os.getenv("MODEX_DEMO_VIDEO_URL", "").strip()
+
 
 def api_key_for_developer(developer_id: str) -> str | None:
     """Return the API secret for a developer_id (e.g. 'judge'), if configured."""

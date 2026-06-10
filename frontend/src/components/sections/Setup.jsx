@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Section, SectionHead } from "../ui/Section";
 import { Reveal, RevealGroup } from "../ui/Reveal";
+import { VideoEmbed } from "../ui/VideoEmbed";
+
+const BUILD_MCP_VIDEO = import.meta.env.VITE_MCP_SETUP_VIDEO_URL || "";
 
 function CopyBlock({ label, text }) {
   const [copied, setCopied] = useState(false);
@@ -36,13 +39,45 @@ export function Setup({ setup, loading }) {
     ? JSON.stringify(judge.cursor_config, null, 2)
     : "";
 
+  const mcpSetupVideoUrl = s?.videos?.mcp_setup || BUILD_MCP_VIDEO;
+  const newRepoGuideUrl = s?.videos?.new_repo_guide;
+
   return (
     <Section id="setup" theme="light">
       <SectionHead
         eyebrow="Setup & docs · for judges & teammates"
         title='Core architecture + <span class="grad-text">MCP credentials</span>'
-        lead="Everything you need to test MoDeX: two faces, one Fivetran + BigQuery bus. Face 1 MCP credentials are below — no GCP key required. Full guide also in JUDGES.md on GitHub."
+        lead="Everything you need to test MoDeX: two faces, one Fivetran + BigQuery bus. Watch the MCP setup walkthrough below, then copy judge credentials — no GCP key required."
       />
+
+      <Reveal className="setup-video-block card">
+        <div className="setup-video-head">
+          <span className="setup-arch-tag tone-amber">Face 1 · video</span>
+          <h3 className="setup-block-title">MoDeX MCP setup in Cursor (new repo)</h3>
+          <p className="setup-block-lead">
+            Step-by-step: download <code>remote_client.py</code>, configure{" "}
+            <code>~/.cursor/mcp.json</code>, add <code>.cursor/modex.json</code> in your repo,
+            verify MCP tools, and log your first decision.
+          </p>
+        </div>
+        <VideoEmbed
+          url={mcpSetupVideoUrl}
+          title="MoDeX MCP setup in Cursor"
+          className="demo-video-wrap setup-video-wrap"
+          placeholderTitle="MCP setup video — upload in progress"
+          placeholderLead="Drop your recording at frontend/public/videos/mcp-setup.mp4 and rebuild, or set MODEX_MCP_SETUP_VIDEO_URL on Cloud Run (YouTube / Loom / Drive link)."
+          placeholderHint={
+            newRepoGuideUrl ? (
+              <>
+                <span className="demo-upload-badge">Written guide</span>
+                <a href={newRepoGuideUrl} target="_blank" rel="noreferrer">
+                  docs/NEW_REPO_MCP_SETUP.md
+                </a>
+              </>
+            ) : null
+          }
+        />
+      </Reveal>
 
       {loading && !s ? (
         <div className="dec-empty">Loading setup…</div>

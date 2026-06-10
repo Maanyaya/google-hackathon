@@ -129,13 +129,13 @@ export const QUICK_MISSIONS = [
 
 export const NAV = [
   { id: "architecture", label: "Architecture" },
+  { id: "ask", label: "Ask Face 2" },
   { id: "flow", label: "Data flow" },
   { id: "demo", label: "Demo" },
   { id: "agents", label: "Agents" },
   { id: "pack", label: "Context pack" },
   { id: "decisions", label: "Decisions" },
   { id: "pipelines", label: "Pipelines" },
-  { id: "mission", label: "Ask Face 2" },
 ];
 
 export const CHART_TOOLTIP = {

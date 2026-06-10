@@ -40,13 +40,20 @@ What is the current sync status of the MoDeX logs pipeline?
 
 ## Test Face 1 MCP (5 minutes)
 
-### Credentials
+### Credentials — two keys for the handoff demo
+
+MoDeX shared memory is proven when **two different developer IDs** log to the **same repo slug**:
+
+| Key | `developer_id` | Use as |
+|-----|----------------|--------|
+| `msk-7079ba3cdcf863affee3bbdea41b0485` | `judge` | Agent A — writes decisions + compresses |
+| `msk-1681c9a2c379d01e755fd0eb99de35ec` | `judge2` | Agent B — hydrates and continues |
 
 | Field | Value |
 |-------|--------|
 | **Service URL** | `https://agentic-data-platform-979112189932.asia-south1.run.app` |
-| **Judge API key** | `msk-7079ba3cdcf863affee3bbdea41b0485` |
-| **Judge 2 API key** | `msk-1681c9a2c379d01e755fd0eb99de35ec` |
+| **Judge API key (Agent A)** | `msk-7079ba3cdcf863affee3bbdea41b0485` |
+| **Judge 2 API key (Agent B)** | `msk-1681c9a2c379d01e755fd0eb99de35ec` |
 | **Demo repo** | `github.com/demo/api-service` |
 | **Copy/paste MCP config** | [docs/JUDGE_MCP_CREDENTIALS.md](docs/JUDGE_MCP_CREDENTIALS.md) |
 

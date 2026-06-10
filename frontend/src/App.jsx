@@ -5,6 +5,9 @@ import { Hero } from "./components/sections/Hero";
 import { Problem } from "./components/sections/Problem";
 import { Architecture } from "./components/sections/Architecture";
 
+const AskGuide = lazy(() =>
+  import("./components/sections/AskGuide").then((m) => ({ default: m.AskGuide })),
+);
 const Setup = lazy(() =>
   import("./components/sections/Setup").then((m) => ({ default: m.Setup })),
 );
@@ -25,9 +28,6 @@ const Agents = lazy(() =>
 );
 const Pipelines = lazy(() =>
   import("./components/sections/Pipelines").then((m) => ({ default: m.Pipelines })),
-);
-const Mission = lazy(() =>
-  import("./components/sections/Mission").then((m) => ({ default: m.Mission })),
 );
 const FlowDiagram = lazy(() =>
   import("./components/sections/FlowDiagram").then((m) => ({ default: m.FlowDiagram })),
@@ -90,11 +90,17 @@ export default function App() {
       <Hero overview={overview} decisions={decisions} impact={impact} onNav={onNav} />
       <Problem />
       <Architecture />
+
+      {/* Face 2 agent console — high up so visitors can interact immediately */}
+      <Suspense fallback={<SectionFallback min={520} />}>
+        <AskGuide />
+      </Suspense>
+
       <Suspense fallback={<SectionFallback min={600} />}>
         <FlowDiagram />
       </Suspense>
       <Suspense fallback={<SectionFallback min={420} />}>
-        <DemoVideo />
+        <DemoVideo videoUrl={setup?.videos?.handoff_demo} />
       </Suspense>
       <Suspense fallback={<SectionFallback min={400} />}>
         <Setup setup={setup} loading={!setup && packLoading} />
@@ -117,9 +123,6 @@ export default function App() {
       </Suspense>
       <Suspense fallback={<SectionFallback min={320} />}>
         <Pipelines pipelines={pipelines} freshness={freshness} />
-      </Suspense>
-      <Suspense fallback={<SectionFallback min={380} />}>
-        <Mission />
       </Suspense>
       <Suspense fallback={null}>
         <Footer overview={overview} onNav={onNav} />

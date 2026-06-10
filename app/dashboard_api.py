@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime
 import json
 import re
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -234,6 +235,28 @@ async def get_judge_setup() -> dict[str, Any]:
             "Face 2 answers from the bus and operates Fivetran via MCP tools",
             "Dashboard shows live context pack, decisions, pipeline freshness",
         ],
+        "videos": _dashboard_video_urls(base),
+    }
+
+
+def _dashboard_video_urls(base: str) -> dict[str, str]:
+    """Resolve embed URLs for dashboard video sections."""
+    frontend = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+    bundled_mcp = frontend / "videos" / "mcp-setup.mp4"
+    bundled_demo = frontend / "videos" / "handoff-demo.mp4"
+
+    mcp = config.MODEX_MCP_SETUP_VIDEO_URL
+    if not mcp and bundled_mcp.is_file():
+        mcp = f"{base}/dashboard/videos/mcp-setup.mp4"
+
+    demo = config.MODEX_DEMO_VIDEO_URL
+    if not demo and bundled_demo.is_file():
+        demo = f"{base}/dashboard/videos/handoff-demo.mp4"
+
+    return {
+        "mcp_setup": mcp,
+        "handoff_demo": demo,
+        "new_repo_guide": f"{config.GITHUB_REPO_URL.rstrip('/')}/blob/main/docs/NEW_REPO_MCP_SETUP.md",
     }
 
 

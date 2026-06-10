@@ -43,7 +43,7 @@ export function Nav({ onNav, githubSource, onSync, syncing }) {
               {syncing ? "Syncing…" : "Sync data"}
             </button>
           )}
-          <button className="nav-cta" onClick={() => onNav("mission")}>
+          <button className="nav-cta" onClick={() => onNav("ask")}>
             Ask Face 2
           </button>
         </div>
