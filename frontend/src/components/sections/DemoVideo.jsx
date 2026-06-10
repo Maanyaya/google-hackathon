@@ -10,38 +10,51 @@ const DEMO_VIDEO_URL = "https://youtu.be/_-O5sinN4qY";
 const TIMELINE = [
   {
     t: "0:00",
-    label: "Intro — what is MoDeX",
-    desc: "The problem: agents forget. MoDeX gives them shared persistent memory on Gemini ADK + Google Cloud + Fivetran.",
+    sec: 0,
+    label: "Meet MoDeX",
+    desc: "The memory hub for AI coding agents — shared, persistent memory built on Gemini, ADK, Google Cloud, and Fivetran.",
   },
   {
-    t: "0:50",
-    label: "Dashboard scroll — architecture + stack",
-    desc: "Two faces, one bus. Google Cloud (ADK, BigQuery, Cloud Run, Secret Manager) + Fivetran MCP with 3 live connectors.",
+    t: "0:14",
+    sec: 14,
+    label: "Two faces, one system",
+    desc: "Face 1 captures decisions live in your IDE. Face 2 makes that shared memory accessible and manages pipelines.",
   },
   {
-    t: "1:00",
+    t: "0:27",
+    sec: 27,
+    label: "The memory bus",
+    desc: "Fivetran + BigQuery at the core. Everything on Google Cloud — data flows from IDE sessions into BigQuery, kept fresh by Fivetran.",
+  },
+  {
+    t: "0:45",
+    sec: 45,
     label: "Face 1 — MCP in the IDE",
-    desc: "Agent A works in Cursor. Decisions captured, context compressed, pushed to GitHub. Memory flows to BigQuery + Sheets.",
+    desc: "MCP loads context. Logs flow to spreadsheets — transcripts, summaries. Context compressed and stored as shared memory across tools.",
   },
   {
-    t: "1:40",
-    label: "Agent B hydrates",
-    desc: "Different developer ID, same repo. load_context pulls Agent A's decisions — zero cold start.",
+    t: "1:28",
+    sec: 88,
+    label: "Agent handoff — zero cold start",
+    desc: "Antigravity agent hydrates from loaded context. New agent starts exactly where the last one left off.",
   },
   {
-    t: "2:00",
-    label: "Fivetran + BigQuery",
-    desc: "Connectors syncing: session logs, GitHub PRs, Platform Connector lineage. Spreadsheet rows visible in BigQuery.",
+    t: "2:32",
+    sec: 152,
+    label: "Fivetran connectors → BigQuery",
+    desc: "Session logs, GitHub PRs, and platform lineage sync into the warehouse. Three connectors, one unified memory bus.",
   },
   {
-    t: "2:30",
-    label: "Face 2 — Fivetran MCP live",
-    desc: "Pipeline trust: agent trace shows list_connections, get_connector_lineage. Data trust — not just data sync.",
+    t: "3:37",
+    sec: 217,
+    label: "Face 2 — pipeline trust (Fivetran MCP live)",
+    desc: "Check pipeline health via Fivetran MCP. Not just “is data synced?” — “is it trustworthy?” That’s the partner superpower.",
   },
   {
-    t: "2:50",
-    label: "Close",
-    desc: "Two agents, one shared brain. Zero cold starts. Try it — link in description.",
+    t: "4:02",
+    sec: 242,
+    label: "Try it yourself",
+    desc: "Grab MCP config from GitHub — everything is live. Thank you, Team MoDeX.",
   },
 ];
 
@@ -53,7 +66,7 @@ export function DemoVideo({ videoUrl = "" }) {
       <SectionHead
         eyebrow="Demo · see MoDeX in action"
         title={`Watch the <span class="grad-text">full demo</span>`}
-        lead="Three minutes: dashboard walkthrough, Face 1 MCP in Cursor, agent-to-agent handoff, Fivetran connectors, Face 2 pipeline operations live."
+        lead="Full walkthrough synced to the narration: IDE capture → agent handoff → Fivetran connectors → Face 2 pipeline trust. Timestamps below match the video."
       />
 
       <Reveal>
@@ -67,13 +80,20 @@ export function DemoVideo({ videoUrl = "" }) {
 
       <Reveal className="demo-story-beats">
         {TIMELINE.map((b) => (
-          <div key={b.t} className="demo-beat">
+          <a
+            key={b.t}
+            className="demo-beat demo-beat-link"
+            href={`${DEMO_VIDEO_URL}?t=${b.sec}`}
+            target="_blank"
+            rel="noreferrer"
+            title={`Jump to ${b.t} in demo video`}
+          >
             <span className="demo-beat-t">{b.t}</span>
             <div>
               <strong className="demo-beat-label">{b.label}</strong>
               <p className="demo-beat-desc">{b.desc}</p>
             </div>
-          </div>
+          </a>
         ))}
       </Reveal>
     </Section>

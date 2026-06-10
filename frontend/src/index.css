@@ -1224,6 +1224,17 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: var(--radius-sm);
 }
+.demo-beat-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+.demo-beat-link:hover {
+  border-color: rgba(245,166,35,0.35);
+  background: rgba(245,166,35,0.06);
+  transform: translateX(3px);
+}
 .demo-beat-t {
   font-family: var(--mono);
   font-size: 0.72rem;

@@ -49,7 +49,18 @@ See [JUDGES.md](JUDGES.md) for pre-provisioned API keys (`judge` + `judge2`). No
 
 ### 3. Watch the demo video
 
-[YouTube — full 3-minute walkthrough](https://youtu.be/_-O5sinN4qY)
+[YouTube — full walkthrough](https://youtu.be/_-O5sinN4qY) · timestamps synced on the [dashboard Demo section](https://agentic-data-platform-979112189932.asia-south1.run.app/dashboard/#demo)
+
+| Time | Chapter |
+|------|---------|
+| 0:00 | Meet MoDeX |
+| 0:14 | Two faces, one system |
+| 0:27 | The memory bus (Fivetran + BigQuery) |
+| 0:45 | Face 1 — MCP in the IDE |
+| 1:28 | Agent handoff — zero cold start |
+| 2:32 | Fivetran connectors → BigQuery |
+| 3:37 | Face 2 — pipeline trust (Fivetran MCP live) |
+| 4:02 | Try it yourself |
 
 ---
 
